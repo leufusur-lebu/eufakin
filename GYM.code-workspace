@@ -1,0 +1,63 @@
+{
+    "folders": [
+        {
+            "name": "GYM",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/.git": true,
+            "**/.DS_Store": true,
+            "**/vendor": true,
+            "**/node_modules": true,
+            "**/storage/framework/cache": true,
+            "**/storage/framework/sessions": true,
+            "**/storage/framework/views": true,
+            "**/storage/logs": true,
+            "**/bootstrap/cache": true
+        },
+        "search.exclude": {
+            "**/vendor": true,
+            "**/node_modules": true,
+            "**/public/build": true,
+            "**/storage": true,
+            "**/bootstrap/cache": true,
+            "**/composer.lock": true,
+            "**/package-lock.json": true
+        },
+        "files.associations": {
+            "*.blade.php": "blade"
+        },
+        "emmet.includeLanguages": {
+            "blade": "html"
+        },
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": false,
+        "[php]": {
+            "editor.tabSize": 4
+        },
+        "[blade]": {
+            "editor.tabSize": 4
+        },
+        "[javascript]": {
+            "editor.tabSize": 2
+        },
+        "[json]": {
+            "editor.tabSize": 2
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "bmewburn.vscode-intelephense-client",
+            "onecentlin.laravel-blade",
+            "amiralizadeh9480.laravel-extra-intellisense",
+            "ryannaddy.laravel-artisan",
+            "bradlc.vscode-tailwindcss",
+            "esbenp.prettier-vscode",
+            "editorconfig.editorconfig",
+            "mikestead.dotenv"
+        ]
+    }
+}

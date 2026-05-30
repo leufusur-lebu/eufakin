@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan *)",
+      "Bash(php -l /Users/macbook/Herd/gym/app/Livewire/Admin/Estetic/Pacientes/Index.php)",
+      "Bash(php -l /Users/macbook/Herd/gym/app/Livewire/Admin/Estetic/Tratamientos/Create.php)",
+      "Bash(php -l /Users/macbook/Herd/gym/app/Livewire/Admin/Estetic/Agenda/Index.php)",
+      "Bash(php -l /Users/macbook/Herd/gym/app/Livewire/Admin/Estetic/Pagos/Create.php)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

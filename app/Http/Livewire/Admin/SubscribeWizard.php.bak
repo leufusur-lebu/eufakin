@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Http\Livewire\Admin;
+
+use Livewire\Component;
+
+class SubscribeWizard extends Component
+{
+    public $step = 1;
+    public $clientType = null; // 'new' o 'existing'
+
+    // Aquí irán los campos de los siguientes pasos
+
+    public function setClientType($type)
+    {
+        $this->clientType = $type;
+        $this->step = 2; // Ir al siguiente paso
+    }
+
+    public function goToStep($step)
+    {
+        $this->step = $step;
+    }
+
+    public function render()
+    {
+        return view('livewire.admin.subscribe-wizard');
+    }
+}
