@@ -25,7 +25,7 @@
                 <div>
                     <flux:input
                         label="RUT"
-                        wire:model.live.debounce.10ms="rut"
+                        wire:model.live.debounce.2000ms="rut"
                         placeholder="12.345.678-9"
                         maxlength="13"
                         autocomplete="off"
