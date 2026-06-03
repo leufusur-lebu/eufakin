@@ -52,6 +52,7 @@ use App\Livewire\Admin\Estetic\Sessions\Attend as EsteticSessionAttend;
 
 use App\Livewire\Admin\Cash\Daily as CashDaily;
 use App\Livewire\Admin\Whatsapp\Templates as WhatsappTemplates;
+use App\Livewire\Admin\Users\Index as UsersIndex;
 
 use App\Livewire\Admin\Reports\Index as ReportsIndex;
 use App\Livewire\Admin\Reports\Payments as ReportsPayments;
@@ -129,6 +130,9 @@ Route::prefix('estetic')->name('estetic.')->group(function () {
 
 // CAJA CONSOLIDADA
 Route::get('cash/daily', CashDaily::class)->name('cash.daily');
+
+// USUARIOS DEL SISTEMA
+Route::get('users', UsersIndex::class)->name('users.index');
 
 // WHATSAPP
 Route::get('whatsapp/templates', WhatsappTemplates::class)->name('whatsapp.templates');

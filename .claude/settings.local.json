@@ -8,7 +8,10 @@
       "Bash(php -l /Users/macbook/Herd/gym/app/Livewire/Admin/Estetic/Pagos/Create.php)",
       "Bash(cat)",
       "Read(//tmp/**)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"Landing /: HTTP %{http_code}\\\\n\" http://gym.test/)",
+      "Bash(php -r ' *)"
     ]
   }
 }

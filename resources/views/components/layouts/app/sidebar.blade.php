@@ -135,6 +135,18 @@
         ],
     ];
 
+    // Grupo solo visible para administradores
+    if (auth()->user()?->isAdmin()) {
+        $groups['ADMINISTRACIÓN'] = [
+            [
+                'name' => 'Usuarios',
+                'icon' => 'user-group',
+                'url' => route('admin.users.index'),
+                'current' => request()->routeIs('admin.users.*'),
+            ],
+        ];
+    }
+
 @endphp
 
 
