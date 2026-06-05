@@ -41,7 +41,7 @@
     <header class="sticky top-0 z-50 border-b border-slate-100 bg-white/85 backdrop-blur-lg">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
             <a href="#inicio" class="flex items-center gap-2.5">
-                <img src="{{ asset('images/eufakin-icon.svg') }}" alt="EUFAKIN" class="h-11 w-11 object-contain">
+                <img src="{{ asset('images/eufakin-icon.svg') }}?v={{ @filemtime(public_path('images/eufakin-icon.svg')) }}" alt="EUFAKIN" class="h-11 w-11 object-contain">
                 <span class="font-display text-2xl font-extrabold tracking-tight" style="color: var(--euf-cyan)">
                     EUFAKIN
                 </span>

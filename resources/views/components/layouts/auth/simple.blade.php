@@ -11,6 +11,7 @@
             .euf-blob { position:absolute; border-radius:9999px; filter:blur(70px); opacity:.4; }
         </style>
     </head>
+    @php $logoVer = @filemtime(public_path('images/eufakin-logo.svg')); @endphp
     <body class="min-h-screen bg-slate-50 antialiased">
         <div class="grid min-h-svh lg:grid-cols-2">
 
@@ -20,7 +21,7 @@
                 <div class="euf-blob bottom-10 right-0 h-72 w-72 bg-white/20"></div>
 
                 <a href="{{ route('home') }}" class="relative z-10 inline-flex w-fit rounded-2xl bg-white p-4 shadow-lg">
-                    <img src="{{ asset('images/eufakin-logo.svg') }}" alt="EUFAKIN" class="h-20 object-contain">
+                    <img src="{{ asset('images/eufakin-logo.svg') }}?v={{ $logoVer }}" alt="EUFAKIN" class="h-20 object-contain">
                 </a>
 
                 <div class="relative z-10 text-white">
@@ -48,7 +49,7 @@
                 <div class="flex w-full max-w-sm flex-col gap-6">
                     {{-- Logo (visible en móvil) --}}
                     <a href="{{ route('home') }}" class="mx-auto flex lg:hidden" wire:navigate>
-                        <img src="{{ asset('images/eufakin-logo.svg') }}" alt="EUFAKIN" class="h-20 object-contain">
+                        <img src="{{ asset('images/eufakin-logo.svg') }}?v={{ $logoVer }}" alt="EUFAKIN" class="h-20 object-contain">
                     </a>
 
                     <div class="rounded-3xl border border-slate-100 bg-white p-8 shadow-xl">
