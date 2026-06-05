@@ -4,8 +4,8 @@
         @include('partials.head')
         <style>
             :root {
-                --euf-lime: #8CC63F; --euf-green: #5BB949;
-                --euf-cyan: #29ABE2; --euf-teal: #1CA9C9; --euf-navy: #1B3A5C;
+                --euf-lime: #EE5A6A; --euf-green: #DE6B8E;
+                --euf-cyan: #D3265A; --euf-teal: #C02A6A; --euf-navy: #6B3051;
             }
             .euf-gradient { background: linear-gradient(150deg, var(--euf-lime) 0%, var(--euf-teal) 55%, var(--euf-cyan) 100%); }
             .euf-blob { position:absolute; border-radius:9999px; filter:blur(70px); opacity:.4; }

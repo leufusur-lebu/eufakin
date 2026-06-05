@@ -6,7 +6,9 @@
     <title>EUFAKIN · Centro Kinésico, Gimnasio y Estética</title>
     <meta name="description" content="EUFAKIN — Centro kinésico integral: rehabilitación, gimnasio y tratamientos estéticos en un solo lugar.">
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
 
@@ -14,11 +16,12 @@
 
     <style>
         :root {
-            --euf-lime: #8CC63F;
-            --euf-green: #5BB949;
-            --euf-cyan: #29ABE2;
-            --euf-teal: #1CA9C9;
-            --euf-navy: #1B3A5C;
+            /* Paleta EUFAKIN — rosa / coral / magenta / vino (logo silueta) */
+            --euf-lime: #EE5A6A;   /* coral claro  */
+            --euf-green: #DE6B8E;  /* rosa medio   */
+            --euf-cyan: #D3265A;   /* magenta      */
+            --euf-teal: #C02A6A;   /* magenta-vino */
+            --euf-navy: #6B3051;   /* ciruela (textos) */
         }
         body { font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; }
         .font-display { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
@@ -37,8 +40,11 @@
     {{-- ============ NAVBAR ============ --}}
     <header class="sticky top-0 z-50 border-b border-slate-100 bg-white/85 backdrop-blur-lg">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-            <a href="#inicio" class="flex items-center gap-2">
-                <x-eufakin-mark class="h-12" />
+            <a href="#inicio" class="flex items-center gap-2.5">
+                <img src="{{ asset('images/eufakin-icon.svg') }}" alt="EUFAKIN" class="h-11 w-11 object-contain">
+                <span class="font-display text-2xl font-extrabold tracking-tight" style="color: var(--euf-cyan)">
+                    EUFAKIN
+                </span>
             </a>
 
             <div class="hidden items-center gap-8 md:flex">
