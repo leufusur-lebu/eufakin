@@ -76,10 +76,12 @@ class Wizard extends Component
     public ?string $subscription_end = null;
     // Pago de la suscripción
     public string $gym_payment_choice = 'pending'; // pending | now
-    public ?float $gym_payment_amount = null;
     public ?string $gym_payment_date = null;
-    public string $gym_payment_type = 'efectivo';
     public ?string $gym_payment_notes = null;
+    // Splits de pago (pago mixto): [{monto: float, metodo: string}]
+    public array $gym_payment_splits = [
+        ['monto' => null, 'metodo' => 'efectivo'],
+    ];
 
     // Step 6: Kine
     public ?string $health_insurance = null;
@@ -166,13 +168,33 @@ class Wizard extends Component
     }
 
     /**
-     * Auto-llena el monto del pago con el precio del plan al seleccionarlo.
+     * Auto-llena el primer split con el precio del plan al seleccionarlo.
      */
     public function updatedPlanId($id): void
     {
         if ($id && $plan = \App\Models\Plan::find($id)) {
-            $this->gym_payment_amount = (float) $plan->price;
+            $this->gym_payment_splits = [
+                ['monto' => (float) $plan->price, 'metodo' => 'efectivo'],
+            ];
         }
+    }
+
+    public function addPaymentSplit(): void
+    {
+        $this->gym_payment_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+    }
+
+    public function removePaymentSplit(int $index): void
+    {
+        if (count($this->gym_payment_splits) > 1) {
+            array_splice($this->gym_payment_splits, $index, 1);
+            $this->gym_payment_splits = array_values($this->gym_payment_splits);
+        }
+    }
+
+    public function gymSplitsTotal(): float
+    {
+        return collect($this->gym_payment_splits)->sum(fn($s) => (float) ($s['monto'] ?? 0));
     }
 
     public function updatedRut($value): void
@@ -382,14 +404,21 @@ class Wizard extends Component
                 ]);
                 if ($this->gym_payment_choice === 'now') {
                     $this->validate([
-                        'gym_payment_amount' => ['required', 'numeric', 'min:0'],
-                        'gym_payment_date'   => ['required', 'date'],
-                        'gym_payment_type'   => ['required', 'string', 'max:50'],
-                        'gym_payment_notes'  => ['nullable', 'string', 'max:500'],
+                        'gym_payment_date'              => ['required', 'date'],
+                        'gym_payment_splits'            => ['required', 'array', 'min:1'],
+                        'gym_payment_splits.*.monto'    => ['required', 'numeric', 'min:1'],
+                        'gym_payment_splits.*.metodo'   => ['required', 'string'],
                     ], [], [
-                        'gym_payment_amount' => 'monto', 'gym_payment_date' => 'fecha de pago',
-                        'gym_payment_type'   => 'método',
+                        'gym_payment_date'            => 'fecha de pago',
+                        'gym_payment_splits.*.monto'  => 'monto',
+                        'gym_payment_splits.*.metodo' => 'método',
                     ]);
+                    // Validar que los splits sumen el precio del plan
+                    $plan = \App\Models\Plan::find($this->plan_id);
+                    if ($plan && abs($this->gymSplitsTotal() - (float) $plan->price) > 0.01) {
+                        $this->addError('gym_payment_splits', 'La suma de los montos ($' . number_format($this->gymSplitsTotal(), 0, ',', '.') . ') debe ser igual al precio del plan ($' . number_format($plan->price, 0, ',', '.') . ').');
+                        return false;
+                    }
                 }
                 return true;
             })(),
@@ -531,15 +560,22 @@ class Wizard extends Component
                 // Pago de la suscripción
                 $plan = \App\Models\Plan::find($this->plan_id);
                 if ($this->gym_payment_choice === 'now') {
-                    \App\Models\Payment::create([
-                        'person_id'       => $person->id,
-                        'subscription_id' => $subscription->id,
-                        'amount'          => $this->gym_payment_amount,
-                        'payment_date'    => $this->gym_payment_date,
-                        'payment_type'    => $this->gym_payment_type,
-                        'status'          => 'pagado',
-                        'notes'           => $this->gym_payment_notes,
-                    ]);
+                    $splits = collect($this->gym_payment_splits)->filter(fn($s) => ($s['monto'] ?? 0) > 0);
+                    $splitCount = $splits->count();
+                    foreach ($splits as $i => $split) {
+                        $noteSplit = $splitCount > 1
+                            ? ($this->gym_payment_notes ? $this->gym_payment_notes . " (parte " . ($i+1) . "/$splitCount)" : "Pago mixto parte " . ($i+1) . "/$splitCount")
+                            : $this->gym_payment_notes;
+                        \App\Models\Payment::create([
+                            'person_id'       => $person->id,
+                            'subscription_id' => $subscription->id,
+                            'amount'          => (float) $split['monto'],
+                            'payment_date'    => $this->gym_payment_date,
+                            'payment_type'    => $split['metodo'],
+                            'status'          => 'pagado',
+                            'notes'           => $noteSplit,
+                        ]);
+                    }
                 } else {
                     \App\Models\Payment::create([
                         'person_id'       => $person->id,

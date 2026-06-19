@@ -28,10 +28,11 @@ class Create extends Component
 
     // Pago
     public string $payment_choice = 'pending'; // pending | now
-    public ?float $payment_amount = null;
     public ?string $payment_date = null;
-    public string $payment_type = 'efectivo';
     public ?string $payment_notes = null;
+    public array $payment_splits = [
+        ['monto' => null, 'metodo' => 'efectivo'],
+    ];
 
     public function mount(): void
     {
@@ -56,8 +57,28 @@ class Create extends Component
         $this->recalculateEndDate();
         $plan = Plan::find($id);
         if ($plan) {
-            $this->payment_amount = (float) $plan->price;
+            $this->payment_splits = [
+                ['monto' => (float) $plan->price, 'metodo' => 'efectivo'],
+            ];
         }
+    }
+
+    public function addPaymentSplit(): void
+    {
+        $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+    }
+
+    public function removePaymentSplit(int $index): void
+    {
+        if (count($this->payment_splits) > 1) {
+            array_splice($this->payment_splits, $index, 1);
+            $this->payment_splits = array_values($this->payment_splits);
+        }
+    }
+
+    public function splitsTotal(): float
+    {
+        return collect($this->payment_splits)->sum(fn($s) => (float) ($s['monto'] ?? 0));
     }
 
     public function updatedStartDate(): void
@@ -135,14 +156,22 @@ class Create extends Component
 
         if ($this->payment_choice === 'now') {
             $this->validate([
-                'payment_amount' => ['required', 'numeric', 'min:0'],
-                'payment_date'   => ['required', 'date'],
-                'payment_type'   => ['required', 'string', 'max:50'],
-                'payment_notes'  => ['nullable', 'string', 'max:500'],
+                'payment_date'            => ['required', 'date'],
+                'payment_splits'          => ['required', 'array', 'min:1'],
+                'payment_splits.*.monto'  => ['required', 'numeric', 'min:1'],
+                'payment_splits.*.metodo' => ['required', 'string'],
+                'payment_notes'           => ['nullable', 'string', 'max:500'],
             ], [], [
-                'payment_amount' => 'monto', 'payment_date' => 'fecha de pago',
-                'payment_type' => 'método', 'payment_notes' => 'observaciones',
+                'payment_date'            => 'fecha de pago',
+                'payment_splits.*.monto'  => 'monto',
+                'payment_splits.*.metodo' => 'método',
+                'payment_notes'           => 'observaciones',
             ]);
+            $plan = Plan::find($this->plan_id);
+            if ($plan && abs($this->splitsTotal() - (float) $plan->price) > 0.01) {
+                $this->addError('payment_splits', 'La suma de los montos ($'.number_format($this->splitsTotal(), 0, ',', '.').' ) debe ser igual al precio del plan ($'.number_format($plan->price, 0, ',', '.').') .');
+                return;
+            }
         }
 
         DB::transaction(function () {
@@ -164,15 +193,22 @@ class Create extends Component
             // Crear pago (pendiente o pagado)
             $plan = Plan::find($this->plan_id);
             if ($this->payment_choice === 'now') {
-                Payment::create([
-                    'person_id'       => $this->person_id,
-                    'subscription_id' => $subscription->id,
-                    'amount'          => $this->payment_amount,
-                    'payment_date'    => $this->payment_date,
-                    'payment_type'    => $this->payment_type,
-                    'status'          => 'pagado',
-                    'notes'           => $this->payment_notes,
-                ]);
+                $splits = collect($this->payment_splits)->filter(fn($s) => ($s['monto'] ?? 0) > 0);
+                $splitCount = $splits->count();
+                foreach ($splits as $i => $split) {
+                    $noteSplit = $splitCount > 1
+                        ? ($this->payment_notes ? $this->payment_notes . " (parte " . ($i+1) . "/$splitCount)" : "Pago mixto parte " . ($i+1) . "/$splitCount")
+                        : $this->payment_notes;
+                    Payment::create([
+                        'person_id'       => $this->person_id,
+                        'subscription_id' => $subscription->id,
+                        'amount'          => (float) $split['monto'],
+                        'payment_date'    => $this->payment_date,
+                        'payment_type'    => $split['metodo'],
+                        'status'          => 'pagado',
+                        'notes'           => $noteSplit,
+                    ]);
+                }
             } else {
                 Payment::create([
                     'person_id'       => $this->person_id,

@@ -236,19 +236,70 @@
                 </div>
 
                 @if ($gym_payment_choice === 'now')
-                    <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div class="mt-4 space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+
+                        {{-- Fecha y observaciones (comunes a todos los splits) --}}
                         <div class="grid gap-3 md:grid-cols-2">
-                            <flux:input type="number" step="1" min="0" wire:model="gym_payment_amount" label="Monto" placeholder="0" />
                             <flux:input type="date" wire:model="gym_payment_date" label="Fecha de pago" />
-                            <flux:select wire:model="gym_payment_type" label="Método de pago">
-                                <flux:select.option value="efectivo">Efectivo</flux:select.option>
-                                <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
-                                <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
-                                <flux:select.option value="transferencia">Transferencia</flux:select.option>
-                                <flux:select.option value="webpay">Webpay</flux:select.option>
-                                <flux:select.option value="otro">Otro</flux:select.option>
-                            </flux:select>
                             <flux:input wire:model="gym_payment_notes" label="Observaciones" placeholder="N° comprobante, referencia..." />
+                        </div>
+
+                        {{-- Splits de pago --}}
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Formas de pago</span>
+                                @php $planPrice = $plans->firstWhere('id', $plan_id)?->price ?? 0; $splitsTotal = collect($gym_payment_splits)->sum(fn($s) => (float)($s['monto'] ?? 0)); $diff = $planPrice - $splitsTotal; @endphp
+                                <span class="text-xs {{ abs($diff) < 0.01 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold' }}">
+                                    Total: ${{ number_format($splitsTotal, 0, ',', '.') }}
+                                    / ${{ number_format($planPrice, 0, ',', '.') }}
+                                    @if(abs($diff) > 0.01)
+                                        · {{ $diff > 0 ? 'Faltan' : 'Sobran' }} ${{ number_format(abs($diff), 0, ',', '.') }}
+                                    @else
+                                        ✓
+                                    @endif
+                                </span>
+                            </div>
+
+                            @foreach ($gym_payment_splits as $i => $split)
+                                <div class="flex items-end gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                                    <div class="flex-1">
+                                        <flux:input
+                                            type="number" step="1" min="0"
+                                            wire:model.live="gym_payment_splits.{{ $i }}.monto"
+                                            label="Monto"
+                                            placeholder="0" />
+                                    </div>
+                                    <div class="flex-1">
+                                        <flux:select wire:model="gym_payment_splits.{{ $i }}.metodo" label="Método">
+                                            <flux:select.option value="efectivo">Efectivo</flux:select.option>
+                                            <flux:select.option value="debito">Débito</flux:select.option>
+                                            <flux:select.option value="credito">Crédito</flux:select.option>
+                                            <flux:select.option value="transferencia">Transferencia</flux:select.option>
+                                            <flux:select.option value="webpay">Webpay</flux:select.option>
+                                            <flux:select.option value="mercadopago">Mercado Pago</flux:select.option>
+                                            <flux:select.option value="otro">Otro</flux:select.option>
+                                        </flux:select>
+                                    </div>
+                                    @if (count($gym_payment_splits) > 1)
+                                        <button type="button" wire:click="removePaymentSplit({{ $i }})"
+                                            class="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-500 transition hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/30">
+                                            <flux:icon.x-mark class="size-4" />
+                                        </button>
+                                    @endif
+                                </div>
+                            @endforeach
+
+                            @error('gym_payment_splits')
+                                <p class="text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+
+                            {{-- Botón agregar forma de pago --}}
+                            @if (count($gym_payment_splits) < 4)
+                                <button type="button" wire:click="addPaymentSplit"
+                                    class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-400 py-2 text-sm text-emerald-600 transition hover:bg-emerald-50 dark:border-emerald-700 dark:hover:bg-emerald-950/20">
+                                    <flux:icon.plus class="size-4" /> Agregar otra forma de pago
+                                </button>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -441,7 +492,12 @@
                     <div><strong>Plan GYM:</strong> {{ $plans->firstWhere('id', $plan_id)?->name ?? '—' }} · {{ $subscription_start }} → {{ $subscription_end }}</div>
                     <div><strong>Pago:</strong>
                         @if ($gym_payment_choice === 'now')
-                            <span class="text-emerald-600">Registrado · ${{ number_format($gym_payment_amount ?? 0, 0, ',', '.') }} · {{ ucfirst($gym_payment_type) }}</span>
+                            <span class="text-emerald-600">
+                                Registrado ·
+                                @foreach ($gym_payment_splits as $i => $s)
+                                    ${{ number_format($s['monto'] ?? 0, 0, ',', '.') }} {{ ucfirst($s['metodo'] ?? '') }}{{ !$loop->last ? ' + ' : '' }}
+                                @endforeach
+                            </span>
                         @else
                             <span class="text-amber-600">Pendiente · ${{ number_format($plans->firstWhere('id', $plan_id)?->price ?? 0, 0, ',', '.') }}</span>
                         @endif

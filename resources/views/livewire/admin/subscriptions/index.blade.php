@@ -143,6 +143,7 @@
                         </td>
                         <td class="px-4 py-3 text-right">
                             <div class="inline-flex items-center gap-1">
+                                <flux:button size="sm" variant="subtle" icon="scale" href="{{ route('admin.people.clinical', $s->person_id) }}?tab=measurements" wire:navigate tooltip="Registrar medición" />
                                 @if (in_array($s->status, ['active','paused']))
                                     <flux:button size="sm" variant="subtle" icon="pencil-square" wire:click="openEdit({{ $s->id }})" tooltip="Editar fechas" />
                                 @endif

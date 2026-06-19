@@ -49,6 +49,7 @@
                         </td>
                         <td class="px-3 py-2 text-right">
                             <flux:button size="sm" href="{{ route('admin.people.show', $p) }}" wire:navigate>Ver</flux:button>
+                            <flux:button size="sm" variant="ghost" icon="scale" href="{{ route('admin.people.clinical', $p) }}?tab=measurements" wire:navigate title="Registrar medición">Medición</flux:button>
                             <flux:button size="sm" variant="subtle" wire:click="delete({{ $p->id }})" wire:confirm="¿Eliminar esta persona?">Eliminar</flux:button>
                         </td>
                     </tr>

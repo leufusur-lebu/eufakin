@@ -229,20 +229,83 @@
                 </div>
 
                 @if ($payment_choice === 'now')
-                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 dark:border-emerald-900 dark:bg-emerald-950/20 space-y-4">
+                        {{-- Fecha y observaciones compartidas --}}
                         <div class="grid gap-4 md:grid-cols-2">
-                            <flux:input type="number" step="1" min="0" label="Monto" wire:model="payment_amount" placeholder="0" />
                             <flux:input type="date" label="Fecha de pago" wire:model="payment_date" />
-                            <flux:select label="Método de pago" wire:model="payment_type">
-                                <flux:select.option value="efectivo">Efectivo</flux:select.option>
-                                <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
-                                <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
-                                <flux:select.option value="transferencia">Transferencia</flux:select.option>
-                                <flux:select.option value="webpay">Webpay</flux:select.option>
-                                <flux:select.option value="otro">Otro</flux:select.option>
-                            </flux:select>
                             <flux:input label="Observaciones" wire:model="payment_notes" placeholder="Opcional: nº de comprobante, referencia..." />
                         </div>
+
+                        {{-- Total vs precio del plan --}}
+                        @if ($this->selectedPlan)
+                            @php
+                                $planPrice = (float) $this->selectedPlan->price;
+                                $total = collect($payment_splits)->sum(fn($s) => (float)($s['monto'] ?? 0));
+                                $diff = $planPrice - $total;
+                            @endphp
+                            <div class="flex items-center gap-2 text-sm font-medium {{ abs($diff) < 0.01 ? 'text-emerald-700' : 'text-amber-700' }}">
+                                @if (abs($diff) < 0.01)
+                                    <flux:icon.check-circle class="size-4" />
+                                    Total pagado: ${{ number_format($total, 0, ',', '.') }} ✓
+                                @elseif ($diff > 0)
+                                    <flux:icon.exclamation-circle class="size-4" />
+                                    Faltan ${{ number_format($diff, 0, ',', '.') }} para completar ${{ number_format($planPrice, 0, ',', '.') }}
+                                @else
+                                    <flux:icon.exclamation-circle class="size-4" />
+                                    Exceso de ${{ number_format(abs($diff), 0, ',', '.') }} (máx. ${{ number_format($planPrice, 0, ',', '.') }})
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Splits de pago --}}
+                        <div class="space-y-2">
+                            @foreach ($payment_splits as $i => $split)
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-1">
+                                        <flux:input
+                                            type="number" step="1" min="1"
+                                            label="{{ $loop->first ? 'Monto' : '' }}"
+                                            wire:model.live="payment_splits.{{ $i }}.monto"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div class="flex-1">
+                                        <flux:select
+                                            label="{{ $loop->first ? 'Método' : '' }}"
+                                            wire:model="payment_splits.{{ $i }}.metodo"
+                                        >
+                                            <flux:select.option value="efectivo">Efectivo</flux:select.option>
+                                            <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
+                                            <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
+                                            <flux:select.option value="transferencia">Transferencia</flux:select.option>
+                                            <flux:select.option value="webpay">Webpay</flux:select.option>
+                                            <flux:select.option value="otro">Otro</flux:select.option>
+                                        </flux:select>
+                                    </div>
+                                    @if (count($payment_splits) > 1)
+                                        <flux:button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            icon="x-mark"
+                                            wire:click="removePaymentSplit({{ $i }})"
+                                            class="{{ $loop->first ? 'mb-0' : '' }}"
+                                        />
+                                    @endif
+                                </div>
+                                @error("payment_splits.{$i}.monto") <flux:error>{{ $message }}</flux:error> @enderror
+                            @endforeach
+                        </div>
+
+                        @if (count($payment_splits) < 4)
+                            <flux:button type="button" size="sm" variant="ghost" icon="plus" wire:click="addPaymentSplit">
+                                Agregar otra forma de pago
+                            </flux:button>
+                        @endif
+
+                        @error('payment_splits')
+                            <div class="rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-red-700">{{ $message }}</div>
+                        @enderror
                     </div>
                 @else
                     <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
