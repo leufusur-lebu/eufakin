@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EUFAKIN · Centro Kinésico, Gimnasio y Estética</title>
-    <meta name="description" content="EUFAKIN — Centro kinésico integral: rehabilitación, gimnasio y tratamientos estéticos en un solo lugar.">
+    <title>EUFAKIN · Centro Kinésico, Gimnasio Kinésico y Estética</title>
+    <meta name="description" content="EUFAKIN — Centro kinésico integral: rehabilitación, gimnasio kinésico y tratamientos estéticos en un solo lugar.">
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
@@ -89,7 +89,7 @@
 
                 <p class="mt-6 max-w-lg text-lg text-slate-600">
                     En <strong style="color: var(--euf-navy)">EUFA</strong><strong style="color: var(--euf-cyan)">KIN</strong> reunimos
-                    <strong>kinesiología</strong>, <strong>gimnasio</strong> y <strong>estética</strong> en un mismo lugar,
+                    <strong>kinesiología</strong>, <strong>gimnasio kinésico</strong> y <strong>estética</strong> en un mismo lugar,
                     con un equipo profesional dedicado a tu recuperación y a que te sientas mejor cada día.
                 </p>
 
@@ -145,7 +145,7 @@
                                 <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.115 5.19l.319 1.913A6 6 0 008.11 10.36L9.75 12l-.387.775c-.217.433-.132.956.21 1.298l1.348 1.348c.21.21.329.497.329.795v1.089c0 .426.24.815.622 1.006l.153.076c.433.217.956.132 1.298-.21l.723-.723a8.7 8.7 0 002.288-4.042 1.087 1.087 0 00-.358-1.099l-1.33-1.108c-.251-.21-.582-.299-.905-.245l-1.17.195a1.125 1.125 0 01-.98-.314l-.295-.295a1.125 1.125 0 010-1.591l.13-.132a1.125 1.125 0 011.3-.21l.603.302a.809.809 0 001.086-1.086L14.25 7.5l1.256-.837a4.5 4.5 0 001.528-1.732l.146-.292M6.115 5.19A9 9 0 1017.18 4.64M6.115 5.19A8.965 8.965 0 0112 3c1.929 0 3.716.607 5.18 1.64"/></svg>
                             </span>
                             <div>
-                                <div class="font-semibold text-slate-800">Gimnasio equipado</div>
+                                <div class="font-semibold text-slate-800">Gimnasio kinésico equipado</div>
                                 <div class="text-sm text-slate-500">Entrena con propósito</div>
                             </div>
                         </div>
@@ -190,12 +190,12 @@
                     </ul>
                 </div>
 
-                {{-- Gimnasio --}}
+                {{-- Gimnasio kinésico --}}
                 <div class="group rounded-3xl border border-slate-100 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                     <span class="flex size-14 items-center justify-center rounded-2xl text-white shadow-lg" style="background: linear-gradient(135deg, var(--euf-teal), var(--euf-cyan))">
                         <svg class="size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3"/></svg>
                     </span>
-                    <h3 class="font-display mt-6 text-xl font-bold text-slate-900">Gimnasio</h3>
+                    <h3 class="font-display mt-6 text-xl font-bold text-slate-900">Gimnasio kinésico</h3>
                     <p class="mt-3 text-slate-600">Espacio equipado para entrenamiento funcional y acondicionamiento físico, con planes de suscripción mensual flexibles.</p>
                     <ul class="mt-5 space-y-2 text-sm text-slate-600">
                         <li class="flex items-center gap-2"><span class="size-1.5 rounded-full" style="background: var(--euf-cyan)"></span> Equipo INBODY de composición corporal</li>
@@ -328,7 +328,7 @@
                         </span>
                     </div>
                     <p class="mt-4 text-sm text-slate-400">
-                        Centro kinésico integral. Kinesiología, gimnasio y estética en un solo lugar,
+                        Centro kinésico integral. Kinesiología, gimnasio kinésico y estética en un solo lugar,
                         comprometidos con tu salud y bienestar.
                     </p>
                 </div>
@@ -338,7 +338,7 @@
                         <h4 class="font-semibold text-white">Servicios</h4>
                         <ul class="mt-3 space-y-2 text-slate-400">
                             <li><a href="#servicios" class="transition hover:text-white">Kinesiología</a></li>
-                            <li><a href="#servicios" class="transition hover:text-white">Gimnasio</a></li>
+                            <li><a href="#servicios" class="transition hover:text-white">Gimnasio kinésico</a></li>
                             <li><a href="#servicios" class="transition hover:text-white">Estética</a></li>
                         </ul>
                     </div>

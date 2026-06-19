@@ -29,12 +29,12 @@
                         Sistema de gestión<br>EUFAKIN
                     </h2>
                     <p class="mt-3 max-w-md text-white/90">
-                        Administra kinesiología, gimnasio y estética desde un solo lugar:
+                        Administra kinesiología, gimnasio kinésico y estética desde un solo lugar:
                         pacientes, agenda, tratamientos y caja.
                     </p>
                     <div class="mt-6 flex gap-6 text-sm">
                         <div class="flex items-center gap-2"><span class="size-2 rounded-full bg-white"></span> Kinesiología</div>
-                        <div class="flex items-center gap-2"><span class="size-2 rounded-full bg-white"></span> Gimnasio</div>
+                        <div class="flex items-center gap-2"><span class="size-2 rounded-full bg-white"></span> Gimnasio kinésico</div>
                         <div class="flex items-center gap-2"><span class="size-2 rounded-full bg-white"></span> Estética</div>
                     </div>
                 </div>
