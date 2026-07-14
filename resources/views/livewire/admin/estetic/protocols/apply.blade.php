@@ -133,7 +133,7 @@
                                 <div class="flex items-center gap-2 rounded bg-white px-2 py-1.5 text-xs dark:bg-zinc-900">
                                     <span class="flex size-6 items-center justify-center rounded-full bg-pink-100 text-[10px] font-bold text-pink-700 dark:bg-pink-900/40 dark:text-pink-300">{{ $session['numero'] }}</span>
                                     <div>
-                                        <div class="font-medium">{{ $session['fecha']->isoFormat('ddd D MMM') }}</div>
+                                        <div class="font-medium">{{ $session['fecha']->locale('es')->isoFormat('ddd D MMM') }}</div>
                                         <div class="text-zinc-500">{{ $session['fecha']->format('H:i') }}</div>
                                     </div>
                                 </div>
