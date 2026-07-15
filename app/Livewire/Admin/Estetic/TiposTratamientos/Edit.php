@@ -25,18 +25,18 @@ class Edit extends Component
     public function mount(TipoTratamiento $tipoTratamiento): void
     {
         $this->tipo = $tipoTratamiento;
-        $this->nombre = $tipo->nombre;
-        $this->descripcion = $tipo->descripcion;
-        $this->duracion_minutos = $tipo->duracion_minutos;
-        $this->precio_base = $tipo->precio_base;
-        $this->categoria = $tipo->categoria;
-        $this->materiales_requeridos = $tipo->materiales_requeridos;
-        $this->contraindicaciones = $tipo->contraindicaciones;
-        $this->sesiones_recomendadas = $tipo->sesiones_recomendadas ?: 1;
-        $this->intervalo_dias = $tipo->intervalo_dias ?: 7;
-        $this->protocolo = $tipo->protocolo;
-        $this->color = $tipo->color ?: '#ec4899';
-        $this->activo = $tipo->activo;
+        $this->nombre = $tipoTratamiento->nombre;
+        $this->descripcion = $tipoTratamiento->descripcion;
+        $this->duracion_minutos = $tipoTratamiento->duracion_minutos;
+        $this->precio_base = $tipoTratamiento->precio_base;
+        $this->categoria = $tipoTratamiento->categoria;
+        $this->materiales_requeridos = $tipoTratamiento->materiales_requeridos;
+        $this->contraindicaciones = $tipoTratamiento->contraindicaciones;
+        $this->sesiones_recomendadas = $tipoTratamiento->sesiones_recomendadas ?: 1;
+        $this->intervalo_dias = $tipoTratamiento->intervalo_dias ?: 7;
+        $this->protocolo = $tipoTratamiento->protocolo;
+        $this->color = $tipoTratamiento->color ?: '#ec4899';
+        $this->activo = $tipoTratamiento->activo;
     }
 
     public function save()
