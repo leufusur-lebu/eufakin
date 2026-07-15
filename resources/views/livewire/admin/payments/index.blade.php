@@ -151,19 +151,72 @@
                 @endif
             </div>
 
+            {{-- Fecha y observaciones compartidas --}}
             <div class="grid gap-4 md:grid-cols-2">
-                <flux:input type="number" step="1" min="0" label="Monto" wire:model="pay_amount" />
                 <flux:input type="date" label="Fecha de pago" wire:model="pay_date" />
-                <flux:select label="Método de pago" wire:model="pay_method" class="md:col-span-2">
-                    <flux:select.option value="efectivo">Efectivo</flux:select.option>
-                    <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
-                    <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
-                    <flux:select.option value="transferencia">Transferencia</flux:select.option>
-                    <flux:select.option value="webpay">Webpay</flux:select.option>
-                    <flux:select.option value="otro">Otro</flux:select.option>
-                </flux:select>
-                <flux:input label="Observaciones" wire:model="pay_notes" placeholder="Opcional" class="md:col-span-2" />
+                <flux:input label="Observaciones" wire:model="pay_notes" placeholder="Opcional" />
             </div>
+
+            {{-- Indicador total vs monto original --}}
+            @php $splitsTotal = collect($pay_splits)->sum(fn($s) => (float)($s['monto'] ?? 0)); @endphp
+            @if ($pay_total)
+                @php $diff = $pay_total - $splitsTotal; @endphp
+                <div class="flex items-center gap-2 text-sm font-medium {{ abs($diff) < 0.01 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400' }}">
+                    @if (abs($diff) < 0.01)
+                        <flux:icon.check-circle class="size-4" />
+                        Total: ${{ number_format($splitsTotal, 0, ',', '.') }} ✓
+                    @elseif ($diff > 0)
+                        <flux:icon.exclamation-circle class="size-4" />
+                        Faltan ${{ number_format($diff, 0, ',', '.') }} para completar ${{ number_format($pay_total, 0, ',', '.') }}
+                    @else
+                        <flux:icon.exclamation-circle class="size-4" />
+                        Exceso de ${{ number_format(abs($diff), 0, ',', '.') }} sobre ${{ number_format($pay_total, 0, ',', '.') }}
+                    @endif
+                </div>
+            @endif
+
+            {{-- Splits --}}
+            <div class="space-y-2">
+                @foreach ($pay_splits as $i => $split)
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <flux:input
+                                type="number" step="1" min="1"
+                                label="{{ $loop->first ? 'Monto ($)' : '' }}"
+                                wire:model.live="pay_splits.{{ $i }}.monto"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div class="flex-1">
+                            <flux:select
+                                label="{{ $loop->first ? 'Método' : '' }}"
+                                wire:model="pay_splits.{{ $i }}.metodo"
+                            >
+                                <flux:select.option value="efectivo">Efectivo</flux:select.option>
+                                <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
+                                <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
+                                <flux:select.option value="transferencia">Transferencia</flux:select.option>
+                                <flux:select.option value="webpay">Webpay</flux:select.option>
+                                <flux:select.option value="otro">Otro</flux:select.option>
+                            </flux:select>
+                        </div>
+                        @if (count($pay_splits) > 1)
+                            <flux:button type="button" size="sm" variant="ghost" icon="x-mark" wire:click="removePaySplit({{ $i }})" />
+                        @endif
+                    </div>
+                    @error("pay_splits.{$i}.monto") <flux:error>{{ $message }}</flux:error> @enderror
+                @endforeach
+            </div>
+
+            @if (count($pay_splits) < 4)
+                <flux:button type="button" size="sm" variant="ghost" icon="plus" wire:click="addPaySplit">
+                    Agregar otra forma de pago
+                </flux:button>
+            @endif
+
+            @error('pay_splits')
+                <div class="rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-red-700">{{ $message }}</div>
+            @enderror
 
             <div class="flex justify-end gap-2">
                 <flux:button variant="ghost" wire:click="closePay">Cancelar</flux:button>

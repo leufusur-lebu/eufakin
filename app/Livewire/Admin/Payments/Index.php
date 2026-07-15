@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Payments;
 
 use App\Models\Payment;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,13 +20,13 @@ class Index extends Component
     public string $search = '';
 
     // Registro de pago pendiente
-    public bool $payOpen = false;
-    public ?int $payingId = null;
+    public bool    $payOpen    = false;
+    public ?int    $payingId   = null;
     public ?string $pay_person = null;
-    public ?float $pay_amount = null;
-    public ?string $pay_date = null;
-    public string $pay_method = 'efectivo';
-    public ?string $pay_notes = null;
+    public ?float  $pay_total  = null;
+    public ?string $pay_date   = null;
+    public ?string $pay_notes  = null;
+    public array   $pay_splits = [['monto' => null, 'metodo' => 'efectivo']];
 
     public function updatingStatus(): void { $this->resetPage(); }
     public function updatingSearch(): void { $this->resetPage(); }
@@ -39,42 +40,90 @@ class Index extends Component
     public function openPay(int $id): void
     {
         $p = Payment::with('person')->findOrFail($id);
-        $this->payingId    = $p->id;
-        $this->pay_person  = $p->person?->full_name;
-        $this->pay_amount  = (float) $p->amount;
-        $this->pay_date    = now()->format('Y-m-d');
-        $this->pay_method  = 'efectivo';
-        $this->pay_notes   = $p->notes;
+        $this->payingId   = $p->id;
+        $this->pay_person = $p->person?->full_name;
+        $this->pay_total  = (float) $p->amount;
+        $this->pay_date   = now()->format('Y-m-d');
+        $this->pay_notes  = $p->notes;
+        $this->pay_splits = [['monto' => (float) $p->amount, 'metodo' => 'efectivo']];
         $this->resetErrorBag();
-        $this->payOpen     = true;
+        $this->payOpen    = true;
     }
 
     public function closePay(): void
     {
-        $this->payOpen = false;
+        $this->payOpen  = false;
         $this->payingId = null;
+    }
+
+    public function addPaySplit(): void
+    {
+        if (count($this->pay_splits) < 4) {
+            $this->pay_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+        }
+    }
+
+    public function removePaySplit(int $index): void
+    {
+        if (count($this->pay_splits) > 1) {
+            array_splice($this->pay_splits, $index, 1);
+            $this->pay_splits = array_values($this->pay_splits);
+        }
+    }
+
+    public function splitsTotal(): float
+    {
+        return collect($this->pay_splits)->sum(fn($s) => (float) ($s['monto'] ?? 0));
     }
 
     public function confirmPay(): void
     {
         $this->validate([
-            'pay_amount' => ['required', 'numeric', 'min:0'],
-            'pay_date'   => ['required', 'date'],
-            'pay_method' => ['required', 'string', 'max:50'],
-            'pay_notes'  => ['nullable', 'string', 'max:500'],
+            'pay_date'            => ['required', 'date'],
+            'pay_splits'          => ['required', 'array', 'min:1'],
+            'pay_splits.*.monto'  => ['required', 'numeric', 'min:1'],
+            'pay_splits.*.metodo' => ['required', 'string'],
+            'pay_notes'           => ['nullable', 'string', 'max:500'],
         ], [], [
-            'pay_amount' => 'monto', 'pay_date' => 'fecha',
-            'pay_method' => 'método', 'pay_notes' => 'observaciones',
+            'pay_date'            => 'fecha',
+            'pay_splits.*.monto'  => 'monto',
+            'pay_splits.*.metodo' => 'método',
+            'pay_notes'           => 'observaciones',
         ]);
 
-        $p = Payment::findOrFail($this->payingId);
-        $p->update([
-            'amount'       => $this->pay_amount,
-            'payment_date' => $this->pay_date,
-            'payment_type' => $this->pay_method,
-            'status'       => 'pagado',
-            'notes'        => $this->pay_notes,
-        ]);
+        $original = Payment::findOrFail($this->payingId);
+        $splits     = collect($this->pay_splits)->filter(fn($s) => ($s['monto'] ?? 0) > 0)->values();
+        $splitCount = $splits->count();
+
+        DB::transaction(function () use ($original, $splits, $splitCount) {
+            foreach ($splits as $i => $split) {
+                $obs = $splitCount > 1
+                    ? ($this->pay_notes ? $this->pay_notes . " (parte " . ($i+1) . "/$splitCount)" : "Pago mixto parte " . ($i+1) . "/$splitCount")
+                    : $this->pay_notes;
+
+                if ($i === 0) {
+                    // Actualiza el registro pendiente original con el primer split
+                    $original->update([
+                        'amount'       => (float) $split['monto'],
+                        'payment_date' => $this->pay_date,
+                        'payment_type' => $split['metodo'],
+                        'status'       => 'pagado',
+                        'notes'        => $obs,
+                    ]);
+                } else {
+                    // Crea registros adicionales vinculados a la misma suscripción
+                    Payment::create([
+                        'person_id'       => $original->person_id,
+                        'subscription_id' => $original->subscription_id,
+                        'amount'          => (float) $split['monto'],
+                        'payment_date'    => $this->pay_date,
+                        'payment_type'    => $split['metodo'],
+                        'status'          => 'pagado',
+                        'notes'           => $obs,
+                    ]);
+                }
+            }
+        });
 
         session()->flash('success', 'Pago registrado correctamente.');
         $this->closePay();
