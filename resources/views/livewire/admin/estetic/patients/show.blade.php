@@ -139,7 +139,7 @@
                     <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
                         <flux:icon.clipboard-document-list class="mx-auto size-10 text-zinc-300" />
                         <p class="mt-2 text-sm text-zinc-500">Sin tratamiento activo</p>
-                        <flux:button href="{{ route('admin.estetic.treatments.create') }}" variant="primary" size="sm" class="mt-3" wire:navigate>Crear tratamiento</flux:button>
+                        <flux:button href="{{ route('admin.estetic.tipos-tratamientos.index') }}" variant="primary" size="sm" icon="sparkles" class="mt-3" wire:navigate>Aplicar protocolo</flux:button>
                     </div>
                 @endif
 

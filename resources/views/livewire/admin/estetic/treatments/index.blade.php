@@ -1,7 +1,7 @@
 <div class="p-6 space-y-4">
     <div class="flex items-center justify-between">
         <flux:heading size="xl">Tratamientos estética</flux:heading>
-        <flux:button href="{{ route('admin.estetic.treatments.create') }}" variant="primary" icon="plus" wire:navigate>Nuevo</flux:button>
+        <flux:button href="{{ route('admin.estetic.tipos-tratamientos.index') }}" variant="primary" icon="sparkles" wire:navigate>Aplicar protocolo</flux:button>
     </div>
 
     @if (session('success')) <div class="rounded bg-green-100 p-3 text-green-700">{{ session('success') }}</div> @endif

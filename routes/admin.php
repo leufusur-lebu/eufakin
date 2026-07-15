@@ -117,7 +117,6 @@ Route::prefix('estetic')->name('estetic.')->group(function () {
     Route::get('sessions/{appointment}/attend', EsteticSessionAttend::class)->name('sessions.attend');
 
     Route::get('treatments', EsteticTreatmentsIndex::class)->name('treatments.index');
-    Route::get('treatments/create', EsteticTreatmentsForm::class)->name('treatments.create');
     Route::get('treatments/{treatment}/edit', EsteticTreatmentsForm::class)->name('treatments.edit');
 
     Route::get('appointments', EsteticAppointmentsIndex::class)->name('appointments.index');

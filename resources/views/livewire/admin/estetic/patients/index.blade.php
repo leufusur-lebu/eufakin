@@ -6,7 +6,7 @@
         </div>
         <div class="flex gap-2">
             <flux:button href="{{ route('admin.estetic.appointments.create') }}" icon="calendar-days" wire:navigate>Agendar</flux:button>
-            <flux:button href="{{ route('admin.estetic.treatments.create') }}" variant="primary" icon="plus" wire:navigate>Nuevo tratamiento</flux:button>
+            <flux:button href="{{ route('admin.estetic.tipos-tratamientos.index') }}" variant="primary" icon="sparkles" wire:navigate>Aplicar protocolo</flux:button>
         </div>
     </div>
 
