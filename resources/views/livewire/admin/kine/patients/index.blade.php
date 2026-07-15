@@ -179,7 +179,7 @@
                         <td class="px-4 py-3 text-right">
                             <flux:button size="sm" variant="subtle" href="{{ route('admin.kine.patients.show', $p) }}" wire:navigate icon="eye" tooltip="Ver ficha" />
                             @if (!$next && $t && $pendientes > 0)
-                                <flux:button size="sm" variant="subtle" href="{{ route('admin.kine.appointments.create') }}" wire:navigate icon="calendar-plus" tooltip="Agendar sesión" />
+                                <flux:button size="sm" variant="subtle" href="{{ route('admin.kine.appointments.create') }}" wire:navigate icon="calendar-days" tooltip="Agendar sesión" />
                             @endif
                         </td>
                     </tr>
