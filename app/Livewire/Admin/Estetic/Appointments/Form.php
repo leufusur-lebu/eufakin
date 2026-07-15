@@ -41,8 +41,7 @@ class Form extends Component
 
     // Pago
     public bool    $register_payment  = false;
-    public float   $payment_amount    = 0;
-    public string  $payment_method    = 'efectivo';
+    public array   $payment_splits    = [['monto' => null, 'metodo' => 'efectivo']];
     public ?string $payment_date      = null;
     public ?string $payment_notes     = null;
 
@@ -145,6 +144,26 @@ class Form extends Component
         $this->patientMode = 'search';
     }
 
+    public function addPaymentSplit(): void
+    {
+        if (count($this->payment_splits) < 4) {
+            $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+        }
+    }
+
+    public function removePaymentSplit(int $index): void
+    {
+        if (count($this->payment_splits) > 1) {
+            array_splice($this->payment_splits, $index, 1);
+            $this->payment_splits = array_values($this->payment_splits);
+        }
+    }
+
+    public function splitsTotal(): float
+    {
+        return collect($this->payment_splits)->sum(fn($s) => (float) ($s['monto'] ?? 0));
+    }
+
     public function createAndSelect(): void
     {
         $this->validate([
@@ -190,13 +209,14 @@ class Form extends Component
 
         if ($this->register_payment) {
             $this->validate([
-                'payment_amount' => ['required', 'numeric', 'min:1'],
-                'payment_method' => ['required', 'string'],
-                'payment_date'   => ['required', 'date'],
+                'payment_date'            => ['required', 'date'],
+                'payment_splits'          => ['required', 'array', 'min:1'],
+                'payment_splits.*.monto'  => ['required', 'numeric', 'min:1'],
+                'payment_splits.*.metodo' => ['required', 'string'],
             ], [], [
-                'payment_amount' => 'monto',
-                'payment_method' => 'método de pago',
-                'payment_date'   => 'fecha de pago',
+                'payment_date'            => 'fecha de pago',
+                'payment_splits.*.monto'  => 'monto',
+                'payment_splits.*.metodo' => 'método',
             ]);
         }
 
@@ -225,17 +245,24 @@ class Form extends Component
             }
 
             if ($this->register_payment) {
-                Payment::create([
-                    'estetic_profile_id' => $this->estetic_profile_id,
-                    'tratamiento_id'     => $this->tratamiento_id,
-                    'sesion_id'          => $appointment->id,
-                    'fecha'              => $this->payment_date,
-                    'monto'              => $this->payment_amount,
-                    'metodo'             => $this->payment_method,
-                    'estado'             => 'pagado',
-                    'observaciones'      => $this->payment_notes,
-                    'registrado_por'     => auth()->id(),
-                ]);
+                $splits = collect($this->payment_splits)->filter(fn($s) => ($s['monto'] ?? 0) > 0);
+                $splitCount = $splits->count();
+                foreach ($splits as $i => $split) {
+                    $obs = $splitCount > 1
+                        ? ($this->payment_notes ? $this->payment_notes . " (parte " . ($i+1) . "/$splitCount)" : "Pago mixto parte " . ($i+1) . "/$splitCount")
+                        : $this->payment_notes;
+                    Payment::create([
+                        'estetic_profile_id' => $this->estetic_profile_id,
+                        'tratamiento_id'     => $this->tratamiento_id,
+                        'sesion_id'          => $appointment->id,
+                        'fecha'              => $this->payment_date,
+                        'monto'              => (float) $split['monto'],
+                        'metodo'             => $split['metodo'],
+                        'estado'             => 'pagado',
+                        'observaciones'      => $obs,
+                        'registrado_por'     => auth()->id(),
+                    ]);
+                }
             }
         });
 
