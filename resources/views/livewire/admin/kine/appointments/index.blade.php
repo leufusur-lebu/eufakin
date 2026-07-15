@@ -29,7 +29,7 @@
                     <th class="w-20 border-b p-2 text-left dark:border-zinc-700">Hora</th>
                     @foreach ($days as $day)
                         <th class="border-b border-l p-2 text-left dark:border-zinc-700">
-                            <div class="font-semibold">{{ ucfirst($day->isoFormat('ddd')) }}</div>
+                            <div class="font-semibold">{{ ucfirst($day->locale('es')->isoFormat('ddd')) }}</div>
                             <div class="text-zinc-500">{{ $day->format('d/m') }}</div>
                         </th>
                     @endforeach
