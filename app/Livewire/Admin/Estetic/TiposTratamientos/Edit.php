@@ -22,9 +22,9 @@ class Edit extends Component
     public $color = '#ec4899';
     public $activo = true;
 
-    public function mount(TipoTratamiento $tipo): void
+    public function mount(TipoTratamiento $tipoTratamiento): void
     {
-        $this->tipo = $tipo;
+        $this->tipo = $tipoTratamiento;
         $this->nombre = $tipo->nombre;
         $this->descripcion = $tipo->descripcion;
         $this->duracion_minutos = $tipo->duracion_minutos;
