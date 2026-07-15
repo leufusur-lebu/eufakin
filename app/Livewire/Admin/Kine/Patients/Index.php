@@ -21,7 +21,13 @@ class Index extends Component
     public function render()
     {
         $base = KineProfile::query()
-            ->with(['person'])
+            ->with([
+                'person',
+                'treatments' => fn ($q) => $q->where('estado', 'activo')
+                    ->orderByDesc('id')
+                    ->limit(1)
+                    ->with('tipoTratamiento'),
+            ])
             ->withCount([
                 'treatments as treatments_active_count' => fn ($q) => $q->where('estado', 'activo'),
                 'treatments as treatments_total_count',
@@ -55,7 +61,7 @@ class Index extends Component
                 ->whereIn('estado', ['pendiente', 'confirmado'])
                 ->orderBy('inicio')
                 ->first();
-            $activeTreatment = $p->treatments()->where('estado', 'activo')->orderByDesc('id')->first();
+            $activeTreatment = $p->treatments->first();
             $balance = 0;
             if ($activeTreatment) {
                 $balance = (float) $activeTreatment->costo_total - (float) $activeTreatment->payments()->where('estado', 'pagado')->sum('monto');
