@@ -112,10 +112,12 @@
                 <div class="grid gap-4 md:grid-cols-4">
                     <flux:input type="number" min="1" max="50" wire:model.live="sesiones" label="Sesiones" />
                     <flux:input type="number" min="1" max="365" wire:model.live="intervalo_dias" label="Intervalo (días)" />
-                    <flux:input type="number" min="0" step="1" wire:model.live="costo_sesion" label="Costo / sesión" />
+                    <flux:input type="number" min="0" step="1" wire:model.live="costo_total" label="Costo total" />
                     <div class="rounded-lg border border-pink-200 bg-pink-50 p-3 text-center dark:border-pink-900 dark:bg-pink-950/30">
-                        <div class="text-[10px] uppercase tracking-wide text-pink-600">Total protocolo</div>
-                        <div class="mt-1 text-xl font-bold text-pink-700 dark:text-pink-300">${{ number_format($this->totalCost, 0, ',', '.') }}</div>
+                        <div class="text-[10px] uppercase tracking-wide text-pink-600">Costo / sesión</div>
+                        <div class="mt-1 text-xl font-bold text-pink-700 dark:text-pink-300">
+                            ${{ $sesiones > 0 ? number_format($this->totalCost / $sesiones, 0, ',', '.') : '—' }}
+                        </div>
                     </div>
                 </div>
 

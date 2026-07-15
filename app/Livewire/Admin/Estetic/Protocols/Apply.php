@@ -30,7 +30,7 @@ class Apply extends Component
     public string $start_time = '10:00';
     public int $sesiones = 1;
     public int $intervalo_dias = 7;
-    public ?float $costo_sesion = null;
+    public ?float $costo_total = null;
 
     // Step 3: pago
     public string $payment_mode = 'pending'; // pending|full|installments
@@ -43,7 +43,7 @@ class Apply extends Component
         $this->tipo            = $tipo;
         $this->sesiones        = $tipo->sesiones_recomendadas ?: 1;
         $this->intervalo_dias  = $tipo->intervalo_dias ?: 7;
-        $this->costo_sesion    = (float) $tipo->precio_base;
+        $this->costo_total     = (float) $tipo->precio_base;
         $this->zona_tratada    = $tipo->nombre;
         $this->start_date      = now()->addDay()->format('Y-m-d');
     }
@@ -105,7 +105,7 @@ class Apply extends Component
     #[Computed]
     public function totalCost(): float
     {
-        return (float) $this->costo_sesion * (int) $this->sesiones;
+        return (float) ($this->costo_total ?? 0);
     }
 
     public function apply()
@@ -118,7 +118,7 @@ class Apply extends Component
             'start_time'      => ['required'],
             'sesiones'        => ['required', 'integer', 'min:1', 'max:50'],
             'intervalo_dias'  => ['required', 'integer', 'min:1', 'max:365'],
-            'costo_sesion'    => ['required', 'numeric', 'min:0'],
+            'costo_total'     => ['required', 'numeric', 'min:0'],
             'payment_mode'    => ['required', 'in:pending,full,installments'],
             'cuotas'          => ['required', 'integer', 'min:1', 'max:24'],
         ], [], ['person_id' => 'paciente']);
@@ -131,6 +131,7 @@ class Apply extends Component
             );
 
             $total = $this->totalCost;
+            $costoSesion = $this->sesiones > 0 ? round($total / $this->sesiones, 2) : 0;
 
             // 1. Crear el Treatment
             $treatment = Treatment::create([
@@ -143,7 +144,7 @@ class Apply extends Component
                 'fecha_fin'           => Carbon::parse($this->start_date)->addDays(($this->sesiones - 1) * $this->intervalo_dias)->format('Y-m-d'),
                 'sesiones_totales'    => $this->sesiones,
                 'sesiones_realizadas' => 0,
-                'costo_sesion'        => $this->costo_sesion,
+                'costo_sesion'        => $costoSesion,
                 'costo_total'         => $total,
                 'estado'              => 'activo',
                 'observaciones'       => $this->tipo->protocolo,
