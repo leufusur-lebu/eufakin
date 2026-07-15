@@ -35,6 +35,21 @@ class Index extends Component
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingMonth(): void  { $this->resetPage(); }
 
+    public function prevMonth(): void
+    {
+        $this->month = Carbon::parse($this->month ?: now())->subMonth()->format('Y-m');
+        $this->resetPage();
+    }
+
+    public function nextMonth(): void
+    {
+        $next = Carbon::parse($this->month ?: now())->addMonth();
+        if ($next->lte(now())) {
+            $this->month = $next->format('Y-m');
+            $this->resetPage();
+        }
+    }
+
     public function setStatus(string $s): void
     {
         $this->status = $s;
