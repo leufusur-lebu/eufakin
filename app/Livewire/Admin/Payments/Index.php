@@ -145,8 +145,10 @@ class Index extends Component
                   ->orWhere('rut', 'like', "%{$this->search}%")
             ))
             ->when($this->month, function ($q) {
-                [$y, $m] = explode('-', $this->month);
-                $q->whereYear('payment_date', $y)->whereMonth('payment_date', $m);
+                $parts = explode('-', $this->month);
+                if (count($parts) === 2) {
+                    $q->whereYear('payment_date', $parts[0])->whereMonth('payment_date', $parts[1]);
+                }
             })
             ->orderBy('payment_date', 'desc');
 

@@ -46,7 +46,16 @@
     {{-- Filtros --}}
     <div class="flex flex-wrap items-center gap-3">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Buscar persona..." class="max-w-xs" />
-        <flux:input type="month" wire:model.live="month" class="w-44" />
+        <select wire:model.live="month"
+            class="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-800">
+            <option value="">Todos los meses</option>
+            @php
+                $opt = \Carbon\Carbon::now()->startOfMonth();
+                for ($i = 0; $i < 24; $i++, $opt->subMonth()) {
+                    echo '<option value="'.$opt->format('Y-m').'">'.$opt->locale('es')->isoFormat('MMMM YYYY').'</option>';
+                }
+            @endphp
+        </select>
         @if ($month)
             <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="$set('month', '')">Limpiar</flux:button>
         @endif
