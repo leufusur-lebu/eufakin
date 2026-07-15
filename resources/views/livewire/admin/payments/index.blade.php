@@ -46,6 +46,10 @@
     {{-- Filtros --}}
     <div class="flex flex-wrap items-center gap-3">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Buscar persona..." class="max-w-xs" />
+        <flux:input type="month" wire:model.live="month" class="w-44" />
+        @if ($month)
+            <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="$set('month', '')">Limpiar</flux:button>
+        @endif
         @php
             $tabs = [
                 '' => ['Todos', $counts['all']],

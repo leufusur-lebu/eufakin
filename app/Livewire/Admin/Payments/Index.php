@@ -19,6 +19,9 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    #[Url]
+    public string $month = '';
+
     // Registro de pago pendiente
     public bool    $payOpen    = false;
     public ?int    $payingId   = null;
@@ -30,6 +33,7 @@ class Index extends Component
 
     public function updatingStatus(): void { $this->resetPage(); }
     public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingMonth(): void  { $this->resetPage(); }
 
     public function setStatus(string $s): void
     {
@@ -140,6 +144,10 @@ class Index extends Component
                   ->orWhere('last_name', 'like', "%{$this->search}%")
                   ->orWhere('rut', 'like', "%{$this->search}%")
             ))
+            ->when($this->month, function ($q) {
+                [$y, $m] = explode('-', $this->month);
+                $q->whereYear('payment_date', $y)->whereMonth('payment_date', $m);
+            })
             ->orderBy('payment_date', 'desc');
 
         $monthStart = Carbon::now()->startOfMonth();
