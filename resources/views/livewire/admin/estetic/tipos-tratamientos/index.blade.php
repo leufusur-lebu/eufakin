@@ -82,10 +82,10 @@
                             {{-- Precio --}}
                             <div class="mt-3 flex flex-wrap items-baseline gap-2">
                                 <span class="text-lg font-bold">${{ number_format($t->precio_base, 0, ',', '.') }}</span>
-                                <span class="text-xs text-zinc-500">/ sesión</span>
-                                @if (($t->sesiones_recomendadas ?? 1) > 1)
+                                <span class="text-xs text-zinc-500">total</span>
+                                @if (($t->sesiones_recomendadas ?? 1) > 0)
                                     <span class="ml-auto rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                        Total ${{ number_format($t->precio_base * $t->sesiones_recomendadas, 0, ',', '.') }}
+                                        ${{ number_format($t->precio_base / max(1, $t->sesiones_recomendadas), 0, ',', '.') }} / sesión
                                     </span>
                                 @endif
                             </div>

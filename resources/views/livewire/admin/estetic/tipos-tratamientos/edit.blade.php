@@ -31,10 +31,12 @@
                 <flux:input wire:model="sesiones_recomendadas" type="number" min="1" max="50" label="Sesiones recomendadas" required />
                 <flux:input wire:model="intervalo_dias" type="number" min="1" max="365" label="Intervalo (días)" required />
                 <flux:input wire:model="duracion_minutos" type="number" min="1" label="Duración por sesión (min)" required />
-                <flux:input wire:model="precio_base" type="number" step="1" min="0" label="Precio por sesión" required />
+                <flux:input wire:model="precio_base" type="number" step="1" min="0" label="Precio total del protocolo" required />
             </div>
             <div class="mt-3 rounded-lg bg-white p-3 text-xs dark:bg-zinc-900">
-                💡 Total estimado: <strong class="text-pink-600">${{ number_format(($precio_base ?? 0) * ($sesiones_recomendadas ?? 1), 0, ',', '.') }}</strong>
+                💡 Precio por sesión:
+                <strong class="text-pink-600">${{ number_format(($sesiones_recomendadas ?? 1) > 0 ? ($precio_base ?? 0) / ($sesiones_recomendadas ?? 1) : 0, 0, ',', '.') }}</strong>
+                ({{ $sesiones_recomendadas ?? 1 }} sesiones incluidas)
             </div>
             <flux:textarea wire:model="protocolo" label="Detalle del protocolo" rows="3" class="mt-4" />
         </div>
