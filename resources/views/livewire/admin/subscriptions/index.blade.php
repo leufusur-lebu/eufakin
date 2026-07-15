@@ -80,7 +80,29 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                @php $prevGroup = null; @endphp
                 @forelse ($subscriptions as $s)
+                    @php
+                        $curGroup = in_array($s->status, ['active','paused']) ? 'active' : 'expired';
+                        $isFirstRow = $loop->first;
+                        $showTopHeader  = ($status === '' && $isFirstRow && $curGroup === 'active');
+                        $showSeparator  = ($status === '' && $prevGroup === 'active' && $curGroup === 'expired');
+                        $prevGroup = $curGroup;
+                    @endphp
+                    @if ($showTopHeader)
+                        <tr>
+                            <td colspan="6" class="bg-emerald-50 px-4 py-2 dark:bg-emerald-950/30">
+                                <span class="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Activas / Pausadas</span>
+                            </td>
+                        </tr>
+                    @endif
+                    @if ($showSeparator)
+                        <tr>
+                            <td colspan="6" class="bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
+                                <span class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Vencidas / Canceladas</span>
+                            </td>
+                        </tr>
+                    @endif
                     @php
                         $today = now()->startOfDay();
                         $start = $s->start_date;

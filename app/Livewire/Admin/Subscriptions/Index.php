@@ -123,6 +123,7 @@ class Index extends Component
                   ->orWhere('last_name', 'like', "%{$this->search}%")
                   ->orWhere('rut', 'like', "%{$this->search}%")
             ))
+            ->when(!$this->status, fn ($q) => $q->orderByRaw("CASE WHEN status IN ('active','paused') THEN 0 ELSE 1 END"))
             ->latest('start_date');
 
         $counts = [
