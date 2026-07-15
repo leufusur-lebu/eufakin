@@ -57,7 +57,7 @@
                 @endif
             </span>
             <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="nextMonth"
-                @if (!$month || \Carbon\Carbon::parse($month)->isCurrentMonth()) disabled @endif />
+                @disabled(!$month || \Carbon\Carbon::parse($month)->isCurrentMonth()) />
         </div>
         @if ($month)
             <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="$set('month', '')">Ver todos</flux:button>
