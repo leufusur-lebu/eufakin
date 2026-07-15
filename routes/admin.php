@@ -116,7 +116,7 @@ Route::prefix('estetic')->name('estetic.')->group(function () {
     Route::get('protocols/{tipo}/apply', EsteticProtocolApply::class)->name('protocols.apply');
     Route::get('sessions/{appointment}/attend', EsteticSessionAttend::class)->name('sessions.attend');
 
-    Route::get('treatments', EsteticTreatmentsIndex::class)->name('treatments.index');
+    Route::redirect('treatments', '/admin/estetic/patients')->name('treatments.index');
     Route::get('treatments/{treatment}/edit', EsteticTreatmentsForm::class)->name('treatments.edit');
 
     Route::get('appointments', EsteticAppointmentsIndex::class)->name('appointments.index');

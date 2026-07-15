@@ -2,102 +2,76 @@
 
 namespace App\Livewire\Admin\Estetic\Treatments;
 
-use App\Models\Estetic\TipoTratamiento;
 use App\Models\Estetic\Treatment;
-use App\Models\EsteticProfile;
 use App\Models\Professional;
 use Livewire\Component;
 
 class Form extends Component
 {
-    public ?int $treatmentId = null;
+    public Treatment $treatment;
 
-    public ?int $estetic_profile_id = null;
-    public ?int $tipo_tratamiento_id = null;
-    public ?int $professional_id = null;
-    public ?string $descripcion_plan = null;
-    public string $zona_tratada = '';
-    public ?string $fecha_inicio = null;
-    public ?string $fecha_fin = null;
-    public int $sesiones_totales = 6;
-    public int $sesiones_realizadas = 0;
-    public float $costo_sesion = 0;
-    public float $costo_total = 0;
-    public string $estado = 'activo';
-    public ?string $observaciones = null;
+    public ?int    $professional_id  = null;
+    public string  $zona_tratada     = '';
+    public ?string $fecha_inicio     = null;
+    public ?string $fecha_fin        = null;
+    public float   $costo_total      = 0;
+    public string  $estado           = 'activo';
+    public ?string $observaciones    = null;
 
-    public function mount(): void
+    public function mount(Treatment $treatment): void
     {
-        $treatment = request()->route('treatment');
-        if (is_string($treatment) || is_numeric($treatment)) {
-            $treatment = Treatment::find($treatment);
-        }
-        if ($treatment instanceof Treatment && $treatment->exists) {
-            $this->treatmentId = $treatment->id;
-            $this->fill($treatment->only([
-                'estetic_profile_id', 'tipo_tratamiento_id', 'professional_id',
-                'descripcion_plan', 'zona_tratada', 'sesiones_totales', 'sesiones_realizadas',
-                'costo_sesion', 'costo_total', 'estado', 'observaciones',
-            ]));
-            $this->fecha_inicio = $treatment->fecha_inicio?->format('Y-m-d');
-            $this->fecha_fin = $treatment->fecha_fin?->format('Y-m-d');
-        } else {
-            $this->fecha_inicio = now()->format('Y-m-d');
-        }
+        $this->treatment     = $treatment->load(['esteticProfile.person', 'tipoTratamiento', 'professional', 'appointments']);
+        $this->professional_id = $treatment->professional_id;
+        $this->zona_tratada    = $treatment->zona_tratada ?? '';
+        $this->fecha_inicio    = $treatment->fecha_inicio?->format('Y-m-d');
+        $this->fecha_fin       = $treatment->fecha_fin?->format('Y-m-d');
+        $this->costo_total     = (float) $treatment->costo_total;
+        $this->estado          = $treatment->estado;
+        $this->observaciones   = $treatment->observaciones;
     }
 
-    public function updatedTipoTratamientoId($id): void
+    public function getCostoSesionProperty(): float
     {
-        if ($tipo = TipoTratamiento::find($id)) {
-            $this->costo_sesion = $tipo->precio_base;
-            $this->costo_total = $this->sesiones_totales * $this->costo_sesion;
-        }
+        $sesiones = $this->treatment->sesiones_totales;
+        return $sesiones > 0 ? round($this->costo_total / $sesiones, 0) : 0;
     }
 
-    public function updated($name): void
+    public function save(): void
     {
-        if (in_array($name, ['sesiones_totales', 'costo_sesion'])) {
-            $this->costo_total = $this->sesiones_totales * $this->costo_sesion;
-        }
-    }
-
-    public function save()
-    {
-        $data = $this->validate([
-            'estetic_profile_id' => ['required', 'exists:estetic_profiles,id'],
-            'tipo_tratamiento_id' => ['nullable', 'exists:este_tipos_tratamientos,id'],
+        $this->validate([
             'professional_id' => ['nullable', 'exists:professionals,id'],
-            'descripcion_plan' => ['nullable', 'string', 'max:255'],
-            'zona_tratada' => ['required', 'string', 'max:255'],
-            'fecha_inicio' => ['required', 'date'],
-            'fecha_fin' => ['nullable', 'date'],
-            'sesiones_totales' => ['required', 'integer', 'min:1'],
-            'sesiones_realizadas' => ['required', 'integer', 'min:0'],
-            'costo_sesion' => ['required', 'numeric', 'min:0'],
-            'costo_total' => ['required', 'numeric', 'min:0'],
-            'estado' => ['required', 'in:activo,finalizado,suspendido,cancelado'],
-            'observaciones' => ['nullable', 'string'],
+            'zona_tratada'    => ['required', 'string', 'max:255'],
+            'fecha_inicio'    => ['required', 'date'],
+            'fecha_fin'       => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
+            'costo_total'     => ['required', 'numeric', 'min:0'],
+            'estado'          => ['required', 'in:activo,finalizado,suspendido,cancelado'],
+            'observaciones'   => ['nullable', 'string', 'max:2000'],
+        ], [], [
+            'zona_tratada' => 'zona tratada',
+            'fecha_inicio' => 'fecha de inicio',
+            'fecha_fin'    => 'fecha de fin',
+            'costo_total'  => 'costo total',
         ]);
 
-        $existing = $this->treatmentId ? Treatment::find($this->treatmentId) : null;
-        if ($existing) {
-            $existing->update($data);
-        } else {
-            $created = Treatment::create($data);
-            $this->treatmentId = $created->id;
-        }
+        $this->treatment->update([
+            'professional_id' => $this->professional_id,
+            'zona_tratada'    => $this->zona_tratada,
+            'fecha_inicio'    => $this->fecha_inicio,
+            'fecha_fin'       => $this->fecha_fin,
+            'costo_sesion'    => $this->costoSesion,
+            'costo_total'     => $this->costo_total,
+            'estado'          => $this->estado,
+            'observaciones'   => $this->observaciones,
+        ]);
 
-        session()->flash('success', 'Tratamiento guardado.');
-        return $this->redirectRoute('admin.estetic.treatments.index', navigate: true);
+        session()->flash('success', 'Tratamiento actualizado.');
+        $this->redirectRoute('admin.estetic.patients.show', $this->treatment->esteticProfile, navigate: true);
     }
 
     public function render()
     {
         return view('livewire.admin.estetic.treatments.form', [
-            'treatment' => $this->treatmentId ? Treatment::find($this->treatmentId) : null,
-            'profiles' => EsteticProfile::with('person')->get(),
-            'tipos' => TipoTratamiento::where('activo', true)->orderBy('nombre')->get(),
-            'professionals' => Professional::estetic()->where('active', true)->get(),
+            'professionals' => Professional::estetic()->where('active', true)->orderBy('name')->get(),
         ]);
     }
 }
