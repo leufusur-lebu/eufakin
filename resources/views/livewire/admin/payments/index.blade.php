@@ -47,17 +47,25 @@
     <div class="flex flex-wrap items-center gap-3">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Buscar persona..." class="max-w-xs" />
         {{-- Paginador de mes --}}
-        <div class="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-1 py-1 dark:border-zinc-700 dark:bg-zinc-800">
-            <flux:button size="sm" variant="ghost" icon="chevron-left" wire:click="prevMonth" />
-            <span class="min-w-[120px] text-center text-sm font-medium capitalize">
-                @if ($month)
-                    {{ \Carbon\Carbon::parse($month)->locale('es')->isoFormat('MMMM YYYY') }}
-                @else
-                    Todos los meses
-                @endif
+        @php
+            $nextDisabled = !$month || \Carbon\Carbon::parse($month)->isCurrentMonth();
+            $monthLabel   = $month
+                ? \Carbon\Carbon::parse($month)->locale('es')->isoFormat('MMMM YYYY')
+                : 'Todos los meses';
+        @endphp
+        <div class="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
+            <button type="button" wire:click="prevMonth"
+                class="flex items-center justify-center px-2 py-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+            </button>
+            <span class="min-w-[130px] border-x border-zinc-200 px-3 py-1.5 text-center text-sm font-medium capitalize dark:border-zinc-700">
+                {{ $monthLabel }}
             </span>
-            <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="nextMonth"
-                @disabled(!$month || \Carbon\Carbon::parse($month)->isCurrentMonth()) />
+            <button type="button" wire:click="nextMonth"
+                class="flex items-center justify-center px-2 py-1.5 {{ $nextDisabled ? 'cursor-not-allowed text-zinc-300 dark:text-zinc-600' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100' }}"
+                {{ $nextDisabled ? 'disabled' : '' }}>
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+            </button>
         </div>
         @if ($month)
             <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="$set('month', '')">Ver todos</flux:button>
