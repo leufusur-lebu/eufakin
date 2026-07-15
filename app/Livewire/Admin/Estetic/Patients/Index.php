@@ -12,7 +12,7 @@ class Index extends Component
     use WithPagination;
 
     #[Url] public string $search = '';
-    #[Url] public string $filter = 'all'; // all|active|no_next|with_balance|finished
+    #[Url] public string $filter = 'active'; // all|active|no_next|with_balance|finished
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingFilter(): void { $this->resetPage(); }
@@ -21,7 +21,13 @@ class Index extends Component
     public function render()
     {
         $base = EsteticProfile::query()
-            ->with(['person.clinicalProfile'])
+            ->with([
+                'person.clinicalProfile',
+                'treatments' => fn ($q) => $q->where('estado', 'activo')
+                    ->with('tipoTratamiento')
+                    ->orderByDesc('id')
+                    ->limit(1),
+            ])
             ->withCount([
                 'treatments as treatments_active_count' => fn ($q) => $q->where('estado', 'activo'),
                 'treatments as treatments_total_count',
@@ -53,16 +59,20 @@ class Index extends Component
 
         // Datos enriquecidos por fila
         $patients->getCollection()->transform(function ($p) {
+            $activeTreatment = $p->treatments->first(); // eager loaded (activo, limit 1)
+
             $next = $p->appointments()
                 ->where('inicio', '>=', now())
                 ->whereIn('estado', ['pendiente', 'confirmado'])
                 ->orderBy('inicio')
                 ->first();
-            $activeTreatment = $p->treatments()->where('estado', 'activo')->orderByDesc('id')->first();
+
             $balance = 0;
             if ($activeTreatment) {
-                $balance = (float) $activeTreatment->costo_total - (float) $activeTreatment->payments()->where('estado', 'pagado')->sum('monto');
+                $balance = (float) $activeTreatment->costo_total
+                    - (float) $activeTreatment->payments()->where('estado', 'pagado')->sum('monto');
             }
+
             $p->setAttribute('next_appointment', $next);
             $p->setAttribute('active_treatment', $activeTreatment);
             $p->setAttribute('balance', $balance);
