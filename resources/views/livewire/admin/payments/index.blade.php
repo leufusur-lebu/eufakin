@@ -1,10 +1,7 @@
 <div class="p-6 space-y-6">
-    <div class="flex items-end justify-between">
-        <div>
-            <flux:heading size="xl">Pagos GYM</flux:heading>
-            <flux:text class="text-zinc-500">Cobros de suscripciones y servicios</flux:text>
-        </div>
-        <flux:button href="{{ route('admin.payments.create') }}" variant="primary" icon="plus" wire:navigate>Registrar pago</flux:button>
+    <div>
+        <flux:heading size="xl">Pagos GYM</flux:heading>
+        <flux:text class="text-zinc-500">Cobros de suscripciones y servicios</flux:text>
     </div>
 
     @if (session('success'))
