@@ -31,7 +31,7 @@ class Create extends Component
     public ?string $payment_date = null;
     public ?string $payment_notes = null;
     public array $payment_splits = [
-        ['monto' => null, 'metodo' => 'efectivo'],
+        ['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null],
     ];
 
     public function mount(): void
@@ -65,7 +65,7 @@ class Create extends Component
 
     public function addPaymentSplit(): void
     {
-        $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+        $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null];
     }
 
     public function removePaymentSplit(int $index): void
@@ -205,6 +205,7 @@ class Create extends Component
                         'amount'          => (float) $split['monto'],
                         'payment_date'    => $this->payment_date,
                         'payment_type'    => $split['metodo'],
+                        'comprobante'     => $split['comprobante'] ?: null,
                         'status'          => 'pagado',
                         'notes'           => $noteSplit,
                     ]);

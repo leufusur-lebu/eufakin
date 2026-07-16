@@ -29,7 +29,7 @@ class Index extends Component
     public ?float  $pay_total  = null;
     public ?string $pay_date   = null;
     public ?string $pay_notes  = null;
-    public array   $pay_splits = [['monto' => null, 'metodo' => 'efectivo']];
+    public array   $pay_splits = [['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null]];
 
     public function updatingStatus(): void { $this->resetPage(); }
     public function updatingSearch(): void { $this->resetPage(); }
@@ -64,7 +64,7 @@ class Index extends Component
         $this->pay_total  = (float) $p->amount;
         $this->pay_date   = now()->format('Y-m-d');
         $this->pay_notes  = $p->notes;
-        $this->pay_splits = [['monto' => (float) $p->amount, 'metodo' => 'efectivo']];
+        $this->pay_splits = [['monto' => (float) $p->amount, 'metodo' => 'efectivo', 'comprobante' => null]];
         $this->resetErrorBag();
         $this->payOpen    = true;
     }
@@ -78,7 +78,7 @@ class Index extends Component
     public function addPaySplit(): void
     {
         if (count($this->pay_splits) < 4) {
-            $this->pay_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+            $this->pay_splits[] = ['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null];
         }
     }
 
@@ -121,22 +121,22 @@ class Index extends Component
                     : $this->pay_notes;
 
                 if ($i === 0) {
-                    // Actualiza el registro pendiente original con el primer split
                     $original->update([
                         'amount'       => (float) $split['monto'],
                         'payment_date' => $this->pay_date,
                         'payment_type' => $split['metodo'],
+                        'comprobante'  => $split['comprobante'] ?: null,
                         'status'       => 'pagado',
                         'notes'        => $obs,
                     ]);
                 } else {
-                    // Crea registros adicionales vinculados a la misma suscripción
                     Payment::create([
                         'person_id'       => $original->person_id,
                         'subscription_id' => $original->subscription_id,
                         'amount'          => (float) $split['monto'],
                         'payment_date'    => $this->pay_date,
                         'payment_type'    => $split['metodo'],
+                        'comprobante'     => $split['comprobante'] ?: null,
                         'status'          => 'pagado',
                         'notes'           => $obs,
                     ]);

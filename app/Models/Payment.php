@@ -17,6 +17,7 @@ class Payment extends Model
         'amount',
         'payment_date',
         'payment_type',
+        'comprobante',
         'status',
         'notes',
     ];

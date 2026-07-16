@@ -197,32 +197,42 @@
             @endif
 
             {{-- Splits --}}
-            <div class="space-y-2">
+            <div class="space-y-3">
                 @foreach ($pay_splits as $i => $split)
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1">
+                    @php $needsCode = in_array($split['metodo'] ?? '', ['debito','credito','transferencia','webpay']); @endphp
+                    <div class="rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900/50 space-y-2">
+                        <div class="flex items-end gap-2">
+                            <div class="flex-1">
+                                <flux:input
+                                    type="number" step="1" min="1"
+                                    label="Monto ($)"
+                                    wire:model.live="pay_splits.{{ $i }}.monto"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <flux:select
+                                    label="Método"
+                                    wire:model.live="pay_splits.{{ $i }}.metodo"
+                                >
+                                    <flux:select.option value="efectivo">Efectivo</flux:select.option>
+                                    <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
+                                    <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
+                                    <flux:select.option value="transferencia">Transferencia</flux:select.option>
+                                    <flux:select.option value="webpay">Webpay</flux:select.option>
+                                    <flux:select.option value="otro">Otro</flux:select.option>
+                                </flux:select>
+                            </div>
+                            @if (count($pay_splits) > 1)
+                                <flux:button type="button" size="sm" variant="ghost" icon="x-mark" wire:click="removePaySplit({{ $i }})" />
+                            @endif
+                        </div>
+                        @if ($needsCode)
                             <flux:input
-                                type="number" step="1" min="1"
-                                label="{{ $loop->first ? 'Monto ($)' : '' }}"
-                                wire:model.live="pay_splits.{{ $i }}.monto"
-                                placeholder="0"
+                                label="Código / Nº de transacción"
+                                wire:model="pay_splits.{{ $i }}.comprobante"
+                                placeholder="Ej. 123456789"
                             />
-                        </div>
-                        <div class="flex-1">
-                            <flux:select
-                                label="{{ $loop->first ? 'Método' : '' }}"
-                                wire:model="pay_splits.{{ $i }}.metodo"
-                            >
-                                <flux:select.option value="efectivo">Efectivo</flux:select.option>
-                                <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
-                                <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
-                                <flux:select.option value="transferencia">Transferencia</flux:select.option>
-                                <flux:select.option value="webpay">Webpay</flux:select.option>
-                                <flux:select.option value="otro">Otro</flux:select.option>
-                            </flux:select>
-                        </div>
-                        @if (count($pay_splits) > 1)
-                            <flux:button type="button" size="sm" variant="ghost" icon="x-mark" wire:click="removePaySplit({{ $i }})" />
                         @endif
                     </div>
                     @error("pay_splits.{$i}.monto") <flux:error>{{ $message }}</flux:error> @enderror

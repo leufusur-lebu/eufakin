@@ -41,7 +41,7 @@ class Form extends Component
 
     // Pago
     public bool    $register_payment  = false;
-    public array   $payment_splits    = [['monto' => null, 'metodo' => 'efectivo']];
+    public array   $payment_splits    = [['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null]];
     public ?string $payment_date      = null;
     public ?string $payment_notes     = null;
 
@@ -147,7 +147,7 @@ class Form extends Component
     public function addPaymentSplit(): void
     {
         if (count($this->payment_splits) < 4) {
-            $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo'];
+            $this->payment_splits[] = ['monto' => null, 'metodo' => 'efectivo', 'comprobante' => null];
         }
     }
 
@@ -258,6 +258,7 @@ class Form extends Component
                         'fecha'              => $this->payment_date,
                         'monto'              => (float) $split['monto'],
                         'metodo'             => $split['metodo'],
+                        'comprobante'        => $split['comprobante'] ?: null,
                         'estado'             => 'pagado',
                         'observaciones'      => $obs,
                         'registrado_por'     => auth()->id(),
