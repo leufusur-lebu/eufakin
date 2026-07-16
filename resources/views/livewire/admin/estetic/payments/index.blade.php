@@ -73,8 +73,11 @@
         <div class="space-y-4">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Buscar paciente..." class="max-w-sm" />
 
+            @php
+                $allGroups = $receivables['groups']->concat($receivables['activeNoDebt']);
+            @endphp
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                @forelse ($receivables['groups'] as $g)
+                @forelse ($allGroups as $g)
                     @php
                         $days = (int) $g['days_overdue'];
                         $color = $days >= 30 ? 'rose' : ($days >= 14 ? 'amber' : 'zinc');
@@ -96,14 +99,20 @@
                         </div>
 
                         <div class="mt-3 flex items-baseline justify-between">
-                            <div>
-                                <div class="text-[10px] uppercase tracking-wide text-zinc-500">Saldo total</div>
-                                <div class="text-xl font-bold text-amber-600">${{ number_format($g['total_due'], 0, ',', '.') }}</div>
-                            </div>
-                            <div class="text-right text-xs text-zinc-500">
-                                {{ $g['pending_count'] }} {{ Str::plural('cuota', $g['pending_count']) }}<br>
-                                desde {{ \Carbon\Carbon::parse($g['oldest_date'])->format('d/m/Y') }}
-                            </div>
+                            @if ($g['has_debt'])
+                                <div>
+                                    <div class="text-[10px] uppercase tracking-wide text-zinc-500">Saldo total</div>
+                                    <div class="text-xl font-bold text-amber-600">${{ number_format($g['total_due'], 0, ',', '.') }}</div>
+                                </div>
+                                <div class="text-right text-xs text-zinc-500">
+                                    {{ $g['pending_count'] }} {{ Str::plural('cuota', $g['pending_count']) }}<br>
+                                    desde {{ \Carbon\Carbon::parse($g['oldest_date'])->format('d/m/Y') }}
+                                </div>
+                            @else
+                                <span class="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                    <flux:icon.check-circle class="size-3.5" /> Al día
+                                </span>
+                            @endif
                         </div>
 
                         @if ($g['protocols']->isNotEmpty())
@@ -118,17 +127,19 @@
                         @endif
 
                         <div class="mt-3 flex gap-1">
-                            <flux:button wire:click="openBulk({{ $g['profile_id'] }})" variant="primary" size="sm" icon="banknotes" class="flex-1">Cobrar todo</flux:button>
-                            <x-whatsapp-button
-                                :phone="$g['person']->phone"
-                                template="payment_overdue"
-                                :vars="[
-                                    'nombre' => $g['person']->first_name,
-                                    'monto' => number_format($g['total_due'], 0, ',', '.'),
-                                    'concepto' => 'tratamiento estético',
-                                ]"
-                                label="" />
-                            <flux:button href="{{ route('admin.estetic.patients.show', $g['profile_id']) }}?tab=finance" wire:navigate variant="ghost" size="sm" icon="eye" />
+                            @if ($g['has_debt'])
+                                <flux:button wire:click="openBulk({{ $g['profile_id'] }})" variant="primary" size="sm" icon="banknotes" class="flex-1">Cobrar todo</flux:button>
+                                <x-whatsapp-button
+                                    :phone="$g['person']->phone"
+                                    template="payment_overdue"
+                                    :vars="[
+                                        'nombre' => $g['person']->first_name,
+                                        'monto' => number_format($g['total_due'], 0, ',', '.'),
+                                        'concepto' => 'tratamiento estético',
+                                    ]"
+                                    label="" />
+                            @endif
+                            <flux:button href="{{ route('admin.estetic.patients.show', $g['profile_id']) }}?tab=finance" wire:navigate variant="ghost" size="sm" icon="eye" class="{{ $g['has_debt'] ? '' : 'flex-1' }}" />
                         </div>
                     </div>
                 @empty
@@ -146,14 +157,34 @@
                     <div class="border-b border-zinc-200 px-5 py-3 dark:border-zinc-700">
                         <h3 class="font-semibold">Detalle de cuotas pendientes</h3>
                     </div>
+                    @php
+                        $thBase = 'flex items-center gap-1 hover:text-pink-600 transition cursor-pointer select-none';
+                        $arrow  = fn($col) => $sortBy === $col ? ($sortDir === 'asc' ? '↑' : '↓') : '↕';
+                    @endphp
                     <table class="w-full text-sm">
                         <thead class="bg-zinc-50 text-xs uppercase text-zinc-500 dark:bg-zinc-800">
                             <tr>
-                                <th class="px-4 py-2 text-left">Vence</th>
-                                <th class="px-4 py-2 text-left">Paciente</th>
-                                <th class="px-4 py-2 text-left">Protocolo</th>
+                                <th class="px-4 py-2 text-left">
+                                    <button wire:click="sortCol('fecha')" class="{{ $thBase }} {{ $sortBy === 'fecha' ? 'text-pink-600' : '' }}">
+                                        Vence <span>{{ $arrow('fecha') }}</span>
+                                    </button>
+                                </th>
+                                <th class="px-4 py-2 text-left">
+                                    <button wire:click="sortCol('paciente')" class="{{ $thBase }} {{ $sortBy === 'paciente' ? 'text-pink-600' : '' }}">
+                                        Paciente <span>{{ $arrow('paciente') }}</span>
+                                    </button>
+                                </th>
+                                <th class="px-4 py-2 text-left">
+                                    <button wire:click="sortCol('protocolo')" class="{{ $thBase }} {{ $sortBy === 'protocolo' ? 'text-pink-600' : '' }}">
+                                        Protocolo <span>{{ $arrow('protocolo') }}</span>
+                                    </button>
+                                </th>
                                 <th class="px-4 py-2 text-left">Cuota</th>
-                                <th class="px-4 py-2 text-right">Monto</th>
+                                <th class="px-4 py-2 text-right">
+                                    <button wire:click="sortCol('monto')" class="{{ $thBase }} justify-end {{ $sortBy === 'monto' ? 'text-pink-600' : '' }}">
+                                        Monto <span>{{ $arrow('monto') }}</span>
+                                    </button>
+                                </th>
                                 <th class="px-4 py-2 text-right">Acción</th>
                             </tr>
                         </thead>

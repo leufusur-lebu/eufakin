@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Estetic\Payments;
 
 use App\Models\Estetic\Payment;
+use App\Models\Estetic\Treatment;
 use Carbon\Carbon;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -10,11 +11,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Index extends Component
 {
-    #[Url] public string $tab = 'receivables'; // receivables | movements
-    #[Url] public string $search = '';
-    #[Url] public string $from = '';
-    #[Url] public string $to = '';
-    #[Url] public string $method = ''; // filtro método en movements
+    #[Url] public string $tab     = 'receivables'; // receivables | movements
+    #[Url] public string $search  = '';
+    #[Url] public string $from    = '';
+    #[Url] public string $to      = '';
+    #[Url] public string $method  = '';
+    #[Url] public string $sortBy  = 'fecha';
+    #[Url] public string $sortDir = 'asc';
 
     // Modal de cobro
     public bool $payOpen = false;
@@ -53,6 +56,16 @@ class Index extends Component
         };
         $this->from = $f->format('Y-m-d');
         $this->to   = $t->format('Y-m-d');
+    }
+
+    public function sortCol(string $col): void
+    {
+        if ($this->sortBy === $col) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy  = $col;
+            $this->sortDir = 'asc';
+        }
     }
 
     // ===== COBRO INDIVIDUAL =====
@@ -195,26 +208,73 @@ class Index extends Component
 
         $rows = $base->orderBy('fecha')->get();
 
-        // Agrupado por paciente
+        // Ordenamiento de la tabla de detalle
+        $sorted = match($this->sortBy) {
+            'paciente'  => $this->sortDir === 'asc'
+                ? $rows->sortBy(fn ($r) => $r->esteticProfile?->person?->last_name)
+                : $rows->sortByDesc(fn ($r) => $r->esteticProfile?->person?->last_name),
+            'protocolo' => $this->sortDir === 'asc'
+                ? $rows->sortBy(fn ($r) => $r->treatment?->tipoTratamiento?->nombre)
+                : $rows->sortByDesc(fn ($r) => $r->treatment?->tipoTratamiento?->nombre),
+            'monto'     => $this->sortDir === 'asc'
+                ? $rows->sortBy('monto')
+                : $rows->sortByDesc('monto'),
+            default     => $this->sortDir === 'asc'   // fecha
+                ? $rows->sortBy('fecha')
+                : $rows->sortByDesc('fecha'),
+        };
+
+        // Agrupado por paciente (con deuda)
         $byPatient = $rows->groupBy('estetic_profile_id')->map(function ($g) {
             $first = $g->first();
             $oldest = $g->min('fecha');
             return [
-                'profile_id' => $first->estetic_profile_id,
-                'person'     => $first->esteticProfile?->person,
+                'profile_id'    => $first->estetic_profile_id,
+                'person'        => $first->esteticProfile?->person,
                 'pending_count' => $g->count(),
-                'total_due'  => (float) $g->sum('monto'),
-                'oldest_date' => $oldest,
-                'days_overdue' => Carbon::parse($oldest)->diffInDays(now()),
-                'protocols'  => $g->map(fn ($p) => $p->treatment?->tipoTratamiento?->nombre ?? $p->treatment?->zona_tratada)->filter()->unique()->values(),
+                'total_due'     => (float) $g->sum('monto'),
+                'oldest_date'   => $oldest,
+                'days_overdue'  => Carbon::parse($oldest)->diffInDays(now()),
+                'protocols'     => $g->map(fn ($p) => $p->treatment?->tipoTratamiento?->nombre ?? $p->treatment?->zona_tratada)->filter()->unique()->values(),
+                'has_debt'      => true,
             ];
         })->sortByDesc('days_overdue')->values();
 
+        // Pacientes con tratamiento activo SIN deuda pendiente
+        $profileIdsWithDebt = $byPatient->pluck('profile_id')->toArray();
+        $activeNoDebt = Treatment::query()
+            ->where('estado', 'activo')
+            ->with(['esteticProfile.person', 'tipoTratamiento'])
+            ->when($this->search !== '', function ($q) {
+                $term = $this->search;
+                $q->whereHas('esteticProfile.person', fn ($p) =>
+                    $p->where('first_name', 'like', "%{$term}%")
+                      ->orWhere('last_name', 'like', "%{$term}%")
+                      ->orWhere('rut', 'like', "%{$term}%"));
+            })
+            ->get()
+            ->groupBy('estetic_profile_id')
+            ->filter(fn ($g, $profileId) => !in_array($profileId, $profileIdsWithDebt))
+            ->map(function ($g) {
+                $first = $g->first();
+                return [
+                    'profile_id'    => $first->estetic_profile_id,
+                    'person'        => $first->esteticProfile?->person,
+                    'pending_count' => 0,
+                    'total_due'     => 0.0,
+                    'oldest_date'   => null,
+                    'days_overdue'  => 0,
+                    'protocols'     => $g->map(fn ($t) => $t->tipoTratamiento?->nombre ?? $t->zona_tratada)->filter()->unique()->values(),
+                    'has_debt'      => false,
+                ];
+            })->values();
+
         return [
-            'rows'  => $rows,
-            'groups'=> $byPatient,
-            'totalDue' => (float) $rows->sum('monto'),
-            'count' => $rows->count(),
+            'rows'        => $sorted->values(),
+            'groups'      => $byPatient,
+            'activeNoDebt'=> $activeNoDebt,
+            'totalDue'    => (float) $rows->sum('monto'),
+            'count'       => $rows->count(),
         ];
     }
 
