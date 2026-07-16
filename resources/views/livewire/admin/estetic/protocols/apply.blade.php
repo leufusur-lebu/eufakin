@@ -179,27 +179,37 @@
                 </div>
 
                 @if ($payment_mode === 'full')
-                    <flux:select wire:model="payment_method" label="Método de pago">
-                        <flux:select.option value="efectivo">Efectivo</flux:select.option>
-                        <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
-                        <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
-                        <flux:select.option value="transferencia">Transferencia</flux:select.option>
-                        <flux:select.option value="mercadopago">Mercado Pago</flux:select.option>
-                        <flux:select.option value="otro">Otro</flux:select.option>
-                    </flux:select>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <flux:select wire:model.live="payment_method" label="Método de pago">
+                            <flux:select.option value="efectivo">Efectivo</flux:select.option>
+                            <flux:select.option value="debito">Tarjeta de débito</flux:select.option>
+                            <flux:select.option value="credito">Tarjeta de crédito</flux:select.option>
+                            <flux:select.option value="transferencia">Transferencia</flux:select.option>
+                            <flux:select.option value="webpay">Webpay</flux:select.option>
+                            <flux:select.option value="mercadopago">Mercado Pago</flux:select.option>
+                            <flux:select.option value="otro">Otro</flux:select.option>
+                        </flux:select>
+                        @if (in_array($payment_method, ['debito','credito','transferencia','webpay','mercadopago']))
+                            <flux:input wire:model="comprobante" label="Código / Nº de transacción" placeholder="Ej. 123456789" />
+                        @endif
+                    </div>
                 @endif
 
                 @if ($payment_mode === 'installments')
                     <div class="grid gap-4 md:grid-cols-3">
                         <flux:input type="number" min="2" max="24" wire:model.live="cuotas" label="N° de cuotas" />
                         <flux:input type="number" min="0" wire:model="abono_inicial" label="Abono inicial (opcional)" />
-                        <flux:select wire:model="payment_method" label="Método del abono">
+                        <flux:select wire:model.live="payment_method" label="Método del abono">
                             <flux:select.option value="efectivo">Efectivo</flux:select.option>
                             <flux:select.option value="transferencia">Transferencia</flux:select.option>
                             <flux:select.option value="debito">Débito</flux:select.option>
                             <flux:select.option value="credito">Crédito</flux:select.option>
+                            <flux:select.option value="webpay">Webpay</flux:select.option>
                         </flux:select>
                     </div>
+                    @if (in_array($payment_method, ['debito','credito','transferencia','webpay']) && ($abono_inicial ?? 0) > 0)
+                        <flux:input wire:model="comprobante" label="Código / Nº de transacción del abono" placeholder="Ej. 123456789" />
+                    @endif
                     @php
                         $abono = (float) ($abono_inicial ?? 0);
                         $restante = $this->totalCost - $abono;

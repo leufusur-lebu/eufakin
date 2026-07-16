@@ -33,10 +33,11 @@ class Apply extends Component
     public ?float $costo_total = null;
 
     // Step 3: pago
-    public string $payment_mode = 'pending'; // pending|full|installments
-    public int $cuotas = 1;
-    public string $payment_method = 'efectivo';
-    public ?float $abono_inicial = null;
+    public string  $payment_mode   = 'pending'; // pending|full|installments
+    public int     $cuotas         = 1;
+    public string  $payment_method = 'efectivo';
+    public ?float  $abono_inicial  = null;
+    public ?string $comprobante    = null;
 
     public function mount(TipoTratamiento $tipo): void
     {
@@ -181,10 +182,13 @@ class Apply extends Component
 
     protected function generatePayments(int $profileId, Treatment $treatment, float $total): void
     {
+        $needsCode = in_array($this->payment_method, ['debito', 'credito', 'transferencia', 'webpay', 'mercadopago']);
+
         $base = [
             'estetic_profile_id' => $profileId,
             'tratamiento_id'     => $treatment->id,
             'metodo'             => $this->payment_method ?: 'efectivo',
+            'comprobante'        => $needsCode ? ($this->comprobante ?: null) : null,
         ];
 
         if ($this->payment_mode === 'full') {
